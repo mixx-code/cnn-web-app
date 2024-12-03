@@ -1,95 +1,63 @@
-"use client"; // This tells Next.js that this is a client component
+"use client";
 
-import React, { useState } from "react";
-import Header from "./components/Header";
-import DragAndDrop from "./components/DragAndDrop";
-import PredictionResult from "./components/PredictionResult";
-import SatisfactionStats from "./components/SatisfactionStats";
-import Reviews from "./components/Reviews";
-import ButtonCekHama from "./components/ButtonCekHama";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { decodeJWT } from "../utils/decodeToken";
 
-interface PredictionData {
-  success: boolean;
-  message: string;
-  data: {
-    predicted_class: string;
-    presentase_predicted_class: string;
-    all_probabilities: Record<string, string>;
-  };
-}
+const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const router = useRouter();
 
-const Home: React.FC = () => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [predictionData, setPredictionData] = useState<PredictionData | null>(
-    null
-  ); // Use the defined interface
-  console.log("ini :", predictionData);
-  const handleFileUpload = async () => {
-    if (!selectedFile) {
-      console.error("No file selected for upload");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    console.log("====================================");
+    console.log(token);
+    console.log("====================================");
+
+    if (!token) {
+      // Jika token tidak ada, arahkan ke halaman login
+      console.log("No token found. Redirecting to login.");
+      router.push("/login");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
+      // Verifikasi dan dekode token
+      const decoded = decodeJWT(token);
+      console.log("====================================");
+      console.log(decoded);
+      console.log("====================================");
+      if (!decoded) {
+        console.log("Invalid token. Redirecting to login.");
+        localStorage.removeItem("token");
+        router.push("/login");
+        return;
       }
 
-      const result = await response.json();
-      console.log("Upload result:", result);
+      // Periksa apakah token sudah kedaluwarsa
+      const currentTime = Math.floor(Date.now() / 1000); // Waktu sekarang dalam detik
+      if (decoded.exp && decoded.exp < currentTime) {
+        console.log("Token has expired. Redirecting to login.");
+        localStorage.removeItem("token");
+        router.push("/login");
+        return;
+      }
 
-      // Ensure that the data structure is as expected
-      if (result.data) {
-        // Use the state setter to update predictionData
-        setPredictionData({
-          success: true,
-          message: "Prediction successful",
-          data: {
-            predicted_class: result.data.predicted_class,
-            presentase_predicted_class: result.data.presentase_predicted_class,
-            all_probabilities: result.data.all_probabilities,
-          },
-        });
+      // Cek role `is_admin` dan arahkan ke dashboard yang sesuai
+      if (decoded.is_admin) {
+        console.log("Redirecting to admin dashboard.");
+        router.push("/dashboard");
       } else {
-        console.error("Unexpected response structure:", result);
+        console.log("Redirecting to user dashboard.");
+        router.push("/dashboard-user");
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error("Error handling token:", error);
+      localStorage.removeItem("token");
+      router.push("/login");
     }
-  };
+  }, [router]);
 
-  return (
-    <div className="min-h-screen bg-gray-100 py-5 px-40">
-      <Header />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-        <div className="bg-white p-6 rounded-md shadow-md">
-          <DragAndDrop setSelectedFile={setSelectedFile} />
-          <ButtonCekHama onClick={handleFileUpload} />
-        </div>
-
-        {/* Conditional Rendering of PredictionResult */}
-        {predictionData && predictionData.data && (
-          <PredictionResult
-            pestName={predictionData.data.predicted_class}
-            percentage={predictionData.data.presentase_predicted_class}
-            all_probabilities={predictionData.data.all_probabilities}
-          />
-        )}
-      </div>
-
-      <SatisfactionStats />
-      <Reviews />
-    </div>
-  );
+  return <>{children}</>;
 };
 
-export default Home;
+export default RootLayout;

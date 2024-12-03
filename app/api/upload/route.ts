@@ -4,28 +4,45 @@ export async function POST(request: Request) {
   const formData = await request.formData();
 
   try {
-    const response = await fetch("EXTERNAL_API_URL_HERE", {
+    // Kirim formData ke Flask API untuk memproses gambar dan mendapatkan prediksi
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
       method: "POST",
-      body: formData, // Forward the form data to the external API
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
     });
 
+    // Pastikan response OK dari Flask API
+    if (!response.ok) {
+      throw new Error("Failed to get prediction from Flask API");
+    }
+
     const data = await response.json();
-    
-    // Prepare the predictionData object as per your requirements
+    console.log("Data received from Flask API:", data);
+
+    // Periksa validitas data yang diterima
+    if (!data || !data.predicted_class || !data.probabilities || !data.request_count || !data.role) {
+      throw new Error("Invalid response structure from Flask API");
+    }
+
+    // Siapkan data respons sesuai format yang diinginkan
     const predictionData = {
       success: true,
-      message: "Prediction successful",
+      message: "Image uploaded and predictions made successfully.",
       data: {
-        predicted_class: data.predicted_class,
-        presentase_predicted_class: data.probabilities[data.predicted_class],
-        all_probabilities: data.probabilities,
+        predicted_class: data.predicted_class,  // Kelas yang diprediksi
+        presentase_predicted_class: data.probabilities[data.predicted_class] || 0,  // Persentase kelas yang diprediksi
+        all_probabilities: data.probabilities || {},  // Probabilitas untuk semua kelas
+        request_count: data.request_count,  // Jumlah permintaan
+        role: data.role  // Peran pengguna (misalnya 'admin', 'user', dll.)
       },
     };
 
-    // Return the structured response
-    return NextResponse.json(predictionData, { status: response.status });
+    return NextResponse.json(predictionData, { status: 200 });
+
   } catch (error) {
-    console.error("Error forwarding request:", error);
+    console.error("Error processing request:", error);
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
   }
 }
