@@ -1,21 +1,48 @@
-// pages/api/users.ts
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from 'next/server';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
-    try {
-      const { name, email, role } = req.body;
+export async function POST(req: NextRequest) {
+  // URL of the backend Flask API
+  const BACKEND_URL = 'http://localhost:5001/register-user'; // Change this URL to match your Flask API endpoint
+  const token = req.headers.get('Authorization'); // Ambil token dari header permintaan
 
-      // Simulasi penyimpanan data ke database
-      console.log("Received user data:", { name, email, role });
+  // If the token is missing, return a 403 response
+  if (!token) {
+    return NextResponse.json(
+      { success: false, message: 'Token is missing.' },
+      { status: 403 }
+    );
+  }
 
-      // Return success response
-      res.status(200).json({ message: "User created successfully" });
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ message: "Error creating user" });
+  try {
+    // Parse the incoming request body to get user data (name, username, password, etc.)
+    const { name, username, password } = await req.json();
+
+    // Forward the request to the backend with the token and user data
+    const response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: token, // Pass token to backend API
+        'Content-Type': 'application/json', // Ensure the correct content type
+      },
+      body: JSON.stringify({ name, username, password }), // Send the user data in the body
+    });
+
+    // Parse the response from the backend
+    const data = await response.json();
+
+    // If the backend returns an error, forward the error response
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
     }
-  } else {
-    res.status(405).json({ message: "Method Not Allowed" });
+
+    // Return the successful response from the backend
+    return NextResponse.json(data, { status: 201 }); // Status 201 for successful creation
+  } catch (error) {
+    // If an error occurs while connecting to the backend, return a 500 error
+    console.error('Error creating user:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create user.' },
+      { status: 500 }
+    );
   }
 }

@@ -16,7 +16,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-between items-center bg-gray-200 p-4 rounded-md">
+    <div className="flex justify-between items-center bg-white p-4 rounded-md">
       <h1 className="text-xl text-black font-bold">Dashboard</h1>
       <button
         onClick={handleLogout}

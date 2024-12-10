@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -5,15 +6,16 @@ import { useRouter } from "next/navigation";
 import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
 
-interface ImagesType {
-  gambar_id: number;
-  user_id: number;
+interface PredictionHistory {
+  id: number;
   imageBase64: string;
-  uploadDate: string;
+  predictedClass: string;
+  predictionPercentage: string;
+  predictionDate: string;
 }
 
-const Images: React.FC = () => {
-  const [history, setHistory] = useState<ImagesType[]>([]);
+const Riwayat: React.FC = () => {
+  const [history, setHistory] = useState<PredictionHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalImage, setModalImage] = useState<string | null>(null); // State for the modal image
   const router = useRouter();
@@ -29,12 +31,15 @@ const Images: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`http://127.0.0.1:5001/get-images`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `http://127.0.0.1:5001/predictions-by-user_id/${decoded.id}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           console.error("Failed to fetch history");
@@ -47,10 +52,11 @@ const Images: React.FC = () => {
 
         if (data?.data && Array.isArray(data.data)) {
           const formattedHistory = data.data.map((item: any) => ({
-            gambar_id: item.gambar_id,
-            user_id: item.user_id,
-            imageBase64: item.gambar_hama,
-            uploadDate: item.upload_date,
+            id: item.prediksi_id,
+            imageBase64: item.image_base64,
+            predictedClass: item.prediction_result,
+            predictionPercentage: item.prediction_percentage,
+            predictionDate: item.predicted_at,
           }));
 
           setHistory(formattedHistory);
@@ -101,7 +107,7 @@ const Images: React.FC = () => {
       <h1 className="text-2xl font-bold text-black mb-6">Riwayat Prediksi</h1>
 
       {/* Back to Dashboard Button */}
-      <Link href="/dashboard">
+      <Link href="/dashboard-user">
         <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
           <span className="mr-2">&larr;</span> Kembali
         </span>
@@ -112,28 +118,22 @@ const Images: React.FC = () => {
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
-              <th className="border border-gray-300 p-3">ID Gambar</th>
-              <th className="border border-gray-300 p-3">ID User</th>
               <th className="border border-gray-300 p-3">Gambar</th>
-              <th className="border border-gray-300 p-3">Tanggal Upload</th>
+              <th className="border border-gray-300 p-3">Hama</th>
+              <th className="border border-gray-300 p-3">Presentase</th>
+              <th className="border border-gray-300 p-3">Tanggal Prediksi</th>
             </tr>
           </thead>
           <tbody>
             {history.map((item, index) => (
               <tr
-                key={item.gambar_id}
+                key={item.id}
                 className={`${
                   index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"
                 } hover:bg-blue-100 transition duration-300`}
               >
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {index + 1}
-                </td>
-                <td className="border border-gray-300 p-3 text-center text-black">
-                  {item.gambar_id}
-                </td>
-                <td className="border border-gray-300 p-3 text-center text-black">
-                  {item.user_id}
                 </td>
                 <td
                   className="border border-gray-300 p-3 text-center cursor-pointer"
@@ -145,8 +145,14 @@ const Images: React.FC = () => {
                     className="w-16 h-16 object-cover mx-auto"
                   />
                 </td>
+                <td className="border border-gray-300 p-3 capitalize text-black">
+                  {item.predictedClass.replace(/_/g, " ")}
+                </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
-                  {new Date(item.uploadDate).toLocaleDateString("id-ID")}
+                  {item.predictionPercentage || "N/A"}%
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {new Date(item.predictionDate).toLocaleDateString("id-ID")}
                 </td>
               </tr>
             ))}
@@ -186,4 +192,4 @@ const Images: React.FC = () => {
   );
 };
 
-export default Images;
+export default Riwayat;

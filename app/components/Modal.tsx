@@ -1,39 +1,41 @@
-// components/Modal.tsx
-import React, { ReactNode } from "react";
+import React, { useState } from "react";
 
 interface ModalProps {
   isOpen: boolean;
   toggleModal: () => void;
   title: string;
-  children: ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  toggleModal,
-  title,
-  children,
-}) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, toggleModal, title }) => {
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    // Logic to submit form data (assuming handleSubmit is part of the form component)
+    // Ambil token dari localStorage atau sumber lainnya
+    const token = localStorage.getItem("token"); // Misalnya token disimpan di localStorage
+
     try {
       const response = await fetch("/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Menambahkan token ke header Authorization
         },
         body: JSON.stringify({
-          name: "John Doe",
-          email: "john.doe@example.com",
-          role: "User",
+          name,
+          username,
+          password,
         }),
       });
 
       if (response.ok) {
         console.log("User added successfully");
         // Optionally close the modal after successful submission
+        alert("berhasil tambah user");
+        window.location.reload(); // This will reload the page
         toggleModal();
       } else {
         console.error("Failed to save user");
@@ -43,11 +45,52 @@ const Modal: React.FC<ModalProps> = ({
     }
   };
 
+  // Limit the password length to 8 characters
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    if (newPassword.length <= 8) {
+      setPassword(newPassword);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg w-96">
         <h3 className="text-xl font-semibold mb-4">{title}</h3>
-        {children}
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Username</label>
+            <input
+              type="email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={handlePasswordChange} // Use the new handler
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {password.length > 8 && (
+              <p className="text-red-500 text-sm">
+                Password cannot exceed 8 characters.
+              </p>
+            )}
+          </div>
+        </form>
         <div className="flex justify-between mt-4">
           <button
             type="button"
