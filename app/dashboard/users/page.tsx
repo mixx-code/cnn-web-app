@@ -74,8 +74,37 @@ const Users = () => {
     console.log("Edit user with ID:", userId);
 
     const user = users.find((user) => user.user_id === userId);
+    console.log("id user: ", user);
     setUserToEdit(user || null);
     setIsModalEditUserOpen(true);
+  };
+
+  const handleDelete = async (userId: number): Promise<void> => {
+    const apiUrl = `http://127.0.0.1:5001/delete-user/${userId}`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
+          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete user: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("User deleted successfully:", result);
+      window.location.reload(); // This will reload the page
+
+      // Tindakan tambahan setelah penghapusan berhasil
+      alert("User berhasil dihapus.");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Terjadi kesalahan saat menghapus user.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -189,7 +218,7 @@ const Users = () => {
                     </button>
                     <button
                       className="px-4 py-2 bg-red-500 text-white rounded"
-                      // onClick={() => handleDelete(user.user_id)}
+                      onClick={() => handleDelete(user.user_id)}
                     >
                       Delete
                     </button>

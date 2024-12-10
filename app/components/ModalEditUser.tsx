@@ -20,10 +20,43 @@ const ModalEditUser: React.FC<ModalEditUserProps> = ({ user, onClose }) => {
   const [username, setUsername] = useState(user?.username || "");
   const [password, setPassword] = useState(user?.password || "");
 
-  const handleSave = () => {
-    console.log("Saving user:", { name, username, password, id, adminId });
-    // Your save logic here (e.g., call API to update user)
-    onClose(); // Close the modal after saving
+  const handleEdit = async () => {
+    const apiUrl = `http://127.0.0.1:5001/edit-user/${id}`;
+
+    const updatedUser = {
+      name,
+      username,
+      password,
+      adminId,
+    };
+
+    // Misalkan token diambil dari localStorage atau state
+    const token = localStorage.getItem("token"); // Pastikan mengganti dengan cara pengambilan token sesuai dengan aplikasi Anda
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "PUT", // Menggunakan metode HTTP PUT untuk mengedit data
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Menambahkan token ke header
+        },
+        body: JSON.stringify(updatedUser),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update user: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("User updated successfully:", result);
+      // Optionally close the modal after successful submission
+      alert("berhasil tambah user");
+      window.location.reload(); // This will reload the page
+
+      onClose(); // Menutup modal setelah data berhasil disimpan
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
   };
 
   return (
@@ -72,7 +105,7 @@ const ModalEditUser: React.FC<ModalEditUserProps> = ({ user, onClose }) => {
           </button>
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded"
-            onClick={handleSave}
+            onClick={handleEdit}
           >
             Save
           </button>
