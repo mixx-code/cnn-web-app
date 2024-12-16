@@ -8,6 +8,7 @@ import Link from "next/link";
 interface PredictionHistory {
   id: number;
   user_id: number;
+  prediksi_id: number;
   imageBase64: string;
   predictedClass: string;
   predictionPercentage: string;
@@ -17,59 +18,85 @@ interface PredictionHistory {
 const Predictions: React.FC = () => {
   const [history, setHistory] = useState<PredictionHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [modalImage, setModalImage] = useState<string | null>(null); // State for the modal image
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [cursor, setCursor] = useState<number | null>(null); // Cursor state for pagination
+  const [hasMore, setHasMore] = useState(true); // State to check if there's more data
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      const token = localStorage.getItem("token");
-      const decoded = token ? decodeJWT(token) : null;
+  const ITEMS_PER_PAGE = 10; // Number of items to fetch per page
 
-      if (!token || !decoded) {
-        router.push("/login");
-        return;
-      }
+  const fetchHistory = async (newCursor: number | null = null) => {
+    const token = localStorage.getItem("token");
+    const decoded = token ? decodeJWT(token) : null;
 
-      try {
-        const response = await fetch(`http://127.0.0.1:5001/list_predictions`, {
+    if (!token || !decoded) {
+      router.push("/login");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5001/list_predictions?cursor=${
+          newCursor || ""
+        }&limit=${ITEMS_PER_PAGE}`,
+        {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Failed to fetch history");
+        return;
+      }
+
+      const data = await response.json();
+      console.log("data: ", data);
+
+      if (data?.data && Array.isArray(data.data)) {
+        const formattedHistory = data.data.map((item: any) => ({
+          id: item.prediksi_id,
+          user_id: item.user_id,
+          prediksi_id: item.prediksi_id,
+          imageBase64: item.image_base64,
+          predictedClass: item.prediction_result,
+          predictionPercentage: item.prediction_percentage,
+          predictionDate: item.predicted_at,
+        }));
+
+        setHistory((prev) => {
+          const uniqueItems = formattedHistory.filter(
+            (newItem) => !prev.some((oldItem) => oldItem.id === newItem.id)
+          );
+          return [...prev, ...uniqueItems];
         });
 
-        if (!response.ok) {
-          console.error("Failed to fetch history");
-          return;
-        }
-
-        const data = await response.json();
-
-        console.log("API Response Data:", data);
-
-        if (data?.data && Array.isArray(data.data)) {
-          const formattedHistory = data.data.map((item: any) => ({
-            id: item.prediksi_id,
-            user_id: item.user_id,
-            imageBase64: item.image_base64,
-            predictedClass: item.prediction_result,
-            predictionPercentage: item.prediction_percentage,
-            predictionDate: item.predicted_at,
-          }));
-
-          setHistory(formattedHistory);
-        } else {
-          setHistory([]);
-        }
-      } catch (error) {
-        console.error("Error fetching history:", error);
-      } finally {
-        setIsLoading(false);
+        setCursor(data.next_cursor);
+        setHasMore(Boolean(data.next_cursor)); // Check if there's more data
+      } else {
+        setHasMore(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchHistory();
-  }, [router]);
+  }, []);
+
+  // Function to load more data
+  const loadMore = () => {
+    if (cursor) {
+      fetchHistory(cursor);
+    }
+  };
 
   // Function to open the modal with the clicked image
   const openModal = (image: string) => {
@@ -88,11 +115,11 @@ const Predictions: React.FC = () => {
     </div>
   );
 
-  if (isLoading) {
+  if (isLoading && history.length === 0) {
     return <Spinner />;
   }
 
-  if (history.length === 0) {
+  if (!isLoading && history.length === 0) {
     return (
       <div className="text-center mt-10 text-gray-600">
         Tidak ada riwayat prediksi.
@@ -116,6 +143,7 @@ const Predictions: React.FC = () => {
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
               <th className="border border-gray-300 p-3">ID User</th>
+              <th className="border border-gray-300 p-3">ID Prediksi</th>
               <th className="border border-gray-300 p-3">Gambar</th>
               <th className="border border-gray-300 p-3">Hama</th>
               <th className="border border-gray-300 p-3">Presentase</th>
@@ -135,6 +163,9 @@ const Predictions: React.FC = () => {
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {item.user_id}
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {item.prediksi_id}
                 </td>
                 <td
                   className="border border-gray-300 p-3 text-center cursor-pointer"
@@ -159,6 +190,23 @@ const Predictions: React.FC = () => {
             ))}
           </tbody>
         </table>
+
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={loadMore}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-t-2 border-blue-500 rounded-full animate-spin"></div>
+              ) : (
+                "Muat Lebih Banyak"
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal for full-size image */}

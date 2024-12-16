@@ -8,7 +8,7 @@ import { FaBars, FaTimes } from "react-icons/fa";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true); // State untuk memeriksa apakah proses selesai
+  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
@@ -35,7 +35,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        const currentTime = Math.floor(Date.now() / 1000); // Waktu sekarang dalam detik
+        const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp && decoded.exp < currentTime) {
           console.log("Token has expired. Redirecting to login.");
           localStorage.removeItem("token");
@@ -43,7 +43,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Cek role `is_admin` dan arahkan ke dashboard yang sesuai
         if (decoded.is_admin) {
           console.log("Redirecting to admin dashboard.");
         } else {
@@ -54,7 +53,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem("token");
         router.push("/login");
       } finally {
-        setIsLoading(false); // Selesai memeriksa token
+        setIsLoading(false);
       }
     };
 
@@ -62,13 +61,19 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   }, [router]);
 
   if (isLoading) {
-    return <div></div>; // Indikator loading atau elemen kosong
+    return <div></div>;
   }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Sidebar */}
-      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <div
+        className={`lg:w-64 w-full bg-gray-800 text-white lg:fixed lg:h-screen ${
+          isSidebarOpen ? "block" : "hidden"
+        }`}
+      >
+        <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      </div>
 
       {/* Navbar Hamburger Button */}
       <button
@@ -83,8 +88,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </button>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 pt-20 lg:pt-8 bg-gray-100">
-        {children} {/* Konten yang akan diganti sesuai route */}
+      <div className="flex-1 p-8 pt-20 lg:pt-8 lg:ml-64 bg-gray-100">
+        {children}
       </div>
     </div>
   );

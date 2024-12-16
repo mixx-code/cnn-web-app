@@ -8,6 +8,7 @@ import Link from "next/link";
 
 interface PredictionHistory {
   id: number;
+  prediksi_id: number;
   imageBase64: string;
   predictedClass: string;
   predictionPercentage: string;
@@ -17,73 +18,89 @@ interface PredictionHistory {
 const Riwayat: React.FC = () => {
   const [history, setHistory] = useState<PredictionHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [modalImage, setModalImage] = useState<string | null>(null); // State for the modal image
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [modalImage, setModalImage] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      const token = localStorage.getItem("token");
-      const decoded = token ? decodeJWT(token) : null;
+    fetchHistory();
+  }, []);
 
-      if (!token || !decoded) {
-        router.push("/login");
+  const fetchHistory = async (loadMore = false) => {
+    const token = localStorage.getItem("token");
+    const decoded = token ? decodeJWT(token) : null;
+
+    if (!token || !decoded) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      if (loadMore) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      const queryParam = cursor ? `?cursor=${cursor}&limit=10` : "?limit=10";
+      const response = await fetch(
+        `http://127.0.0.1:5001/predictions-by-user_id/${decoded.id}${queryParam}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Failed to fetch history");
         return;
       }
 
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:5001/predictions-by-user_id/${decoded.id}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+      const data = await response.json();
+
+      if (data?.data && Array.isArray(data.data)) {
+        const formattedHistory = data.data.map((item: any) => ({
+          id: item.prediksi_id,
+          prediksi_id: item.prediksi_id,
+          imageBase64: item.image_base64,
+          predictedClass: item.prediction_result,
+          predictionPercentage: item.prediction_percentage,
+          predictionDate: item.predicted_at,
+        }));
+
+        setHistory((prevHistory) =>
+          loadMore ? [...prevHistory, ...formattedHistory] : formattedHistory
         );
 
-        if (!response.ok) {
-          console.error("Failed to fetch history");
-          return;
-        }
-
-        const data = await response.json();
-
-        console.log("API Response Data:", data);
-
-        if (data?.data && Array.isArray(data.data)) {
-          const formattedHistory = data.data.map((item: any) => ({
-            id: item.prediksi_id,
-            imageBase64: item.image_base64,
-            predictedClass: item.prediction_result,
-            predictionPercentage: item.prediction_percentage,
-            predictionDate: item.predicted_at,
-          }));
-
-          setHistory(formattedHistory);
-        } else {
-          setHistory([]);
-        }
-      } catch (error) {
-        console.error("Error fetching history:", error);
-      } finally {
+        setCursor(data.next_cursor || null);
+        setHasMore(Boolean(data.next_cursor));
+      } else {
+        setHistory([]);
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    } finally {
+      if (loadMore) {
+        setIsLoadingMore(false);
+      } else {
         setIsLoading(false);
       }
-    };
+    }
+  };
 
-    fetchHistory();
-  }, [router]);
-
-  // Function to open the modal with the clicked image
   const openModal = (image: string) => {
     setModalImage(image);
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setModalImage(null);
   };
 
-  // Spinner Component
   const Spinner = () => (
     <div className="flex justify-center items-center py-10">
       <div className="w-16 h-16 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
@@ -106,7 +123,6 @@ const Riwayat: React.FC = () => {
     <div className="min-h-screen bg-gray-100 py-10 px-6 lg:px-20">
       <h1 className="text-2xl font-bold text-black mb-6">Riwayat Prediksi</h1>
 
-      {/* Back to Dashboard Button */}
       <Link href="/dashboard-user">
         <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
           <span className="mr-2">&larr;</span> Kembali
@@ -118,6 +134,7 @@ const Riwayat: React.FC = () => {
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
+              <th className="border border-gray-300 p-3">ID Prediksi</th>
               <th className="border border-gray-300 p-3">Gambar</th>
               <th className="border border-gray-300 p-3">Hama</th>
               <th className="border border-gray-300 p-3">Presentase</th>
@@ -134,6 +151,9 @@ const Riwayat: React.FC = () => {
               >
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {index + 1}
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {item.prediksi_id}
                 </td>
                 <td
                   className="border border-gray-300 p-3 text-center cursor-pointer"
@@ -158,9 +178,20 @@ const Riwayat: React.FC = () => {
             ))}
           </tbody>
         </table>
+
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition duration-300"
+              onClick={() => fetchHistory(true)}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? "Memuat..." : "Muat Lebih Banyak"}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Modal for full-size image */}
       {modalImage && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-4 rounded-lg relative">
@@ -175,11 +206,10 @@ const Riwayat: React.FC = () => {
               alt="Full size"
               className="max-w-full max-h-[80vh] mb-4"
             />
-            {/* Centered Download Button */}
             <div className="flex justify-center mt-4">
               <a
                 href={modalImage}
-                download="predicted_pest_image.jpg" // You can change the filename as needed
+                download="predicted_pest_image.jpg"
                 className="bg-blue-500 text-white py-2 px-4 rounded-lg text-center"
               >
                 Download Image

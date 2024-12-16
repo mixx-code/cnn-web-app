@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import Modal from "../../components/Modal"; // Import modal
 import ModalEditUser from "../../components/ModalEditUser";
 import Link from "next/link";
+import { decodeJWT } from "@/utils/decodeToken";
+import { useRouter } from "next/navigation";
 
 interface User {
   user_id: number;
@@ -18,62 +20,137 @@ const Users = () => {
   const [isModalEditUserOpen, setIsModalEditUserOpen] =
     useState<boolean>(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentPage, setCurrentPage] = useState<number>(1); // Pagination state
-  const [totalPages, setTotalPages] = useState<number>(1); // Total pages state
-  const usersPerPage = 10; // Define how many users to display per page
+  const [cursor, setCursor] = useState<number | null>(null); // Cursor state for pagination
+  const [hasMore, setHasMore] = useState(true); // State to check if there's more data
+  const [history, setHistory] = useState<User[]>([]);
+  const router = useRouter();
+
+  const ITEMS_PER_PAGE = 10;
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
-  // Fetch user data from the backend with pagination
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const token = localStorage.getItem("token"); // Get token from localStorage
+  const fetchHistory = async (newCursor: number | null = null) => {
+    const token = localStorage.getItem("token");
+    const decoded = token ? decodeJWT(token) : null;
 
-      if (!token) {
-        setError("Token is missing. Please log in.");
-        setIsLoading(false);
+    if (!token || !decoded) {
+      router.push("/login");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5001/get-all-users?cursor=${
+          newCursor || ""
+        }&limit=${ITEMS_PER_PAGE}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Failed to fetch history");
         return;
       }
 
-      try {
-        const response = await fetch(
-          `/api/getAllUsers?page=${currentPage}&per_page=${usersPerPage}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`, // Include token in header
-            },
-          }
-        );
+      const data = await response.json();
+      console.log("data : ", data);
 
-        const data = await response.json();
+      if (data?.data && Array.isArray(data.data)) {
+        const formattedHistory = data.data.map((item: any) => ({
+          user_id: item.user_id,
+          admin_id: item.admin_id,
+          name: item.name,
+          username: item.username,
+          password: item.password,
+          created_at: item.created_at,
+        }));
 
-        if (!response.ok) {
-          setError(data.message || "Failed to fetch users.");
-          setIsLoading(false);
-          return;
-        }
+        setHistory((prev) => {
+          const uniqueItems = formattedHistory.filter(
+            (newItem) =>
+              !prev.some((oldItem) => oldItem.user_id === newItem.user_id)
+          );
+          return [...prev, ...uniqueItems];
+        });
 
-        setUsers(data.data || []); // Save users data in state
-        setTotalPages(data.totalPages || 1); // Save total pages
-        setIsLoading(false); // Stop loading after data is fetched
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setError("An unexpected error occurred.");
-        setIsLoading(false);
+        setCursor(data.next_cursor);
+        setHasMore(Boolean(data.next_cursor)); // Check if there's more data
+        console.log("hasmore: ", Boolean(data.next_cursor));
+      } else {
+        setHasMore(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchUsers();
-  }, [currentPage]); // Refetch when currentPage changes
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const loadMore = () => {
+    if (cursor) {
+      fetchHistory(cursor);
+    }
+  };
+
+  // Fetch user data from the backend with pagination
+  // useEffect(() => {
+  //   const fetchUsers = async () => {
+  //     const token = localStorage.getItem("token"); // Get token from localStorage
+
+  //     if (!token) {
+  //       setError("Token is missing. Please log in.");
+  //       setIsLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       const response = await fetch(
+  //         `/api/getAllUsers?page=${currentPage}&per_page=${usersPerPage}`,
+  //         {
+  //           method: "GET",
+  //           headers: {
+  //             Authorization: `Bearer ${token}`, // Include token in header
+  //           },
+  //         }
+  //       );
+
+  //       const data = await response.json();
+
+  //       if (!response.ok) {
+  //         setError(data.message || "Failed to fetch users.");
+  //         setIsLoading(false);
+  //         return;
+  //       }
+
+  //       setUsers(data.data || []); // Save users data in state
+  //       setTotalPages(data.totalPages || 1); // Save total pages
+  //       setIsLoading(false); // Stop loading after data is fetched
+  //     } catch (error) {
+  //       console.error("Error fetching users:", error);
+  //       setError("An unexpected error occurred.");
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchUsers();
+  // }, [currentPage]); // Refetch when currentPage changes
 
   const handleEdit = (userId: number) => {
     console.log("Edit user with ID:", userId);
 
-    const user = users.find((user) => user.user_id === userId);
+    const user = history.find((user) => user.user_id === userId);
     console.log("id user: ", user);
     setUserToEdit(user || null);
     setIsModalEditUserOpen(true);
@@ -110,21 +187,6 @@ const Users = () => {
   const handleCloseModal = () => {
     setIsModalEditUserOpen(false);
     setUserToEdit(null);
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prevPage) => {
-        const newPage = prevPage + 1;
-        return newPage;
-      });
-    }
   };
 
   if (isLoading) {
@@ -174,14 +236,14 @@ const Users = () => {
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
+            {history.length === 0 ? (
               <tr>
                 <td className="py-2 px-4 text-black text-center" colSpan={7}>
                   No users found.
                 </td>
               </tr>
             ) : (
-              users.map((user, index) => (
+              history.map((user, index) => (
                 <tr
                   key={user.user_id}
                   className={`${
@@ -228,28 +290,22 @@ const Users = () => {
             )}
           </tbody>
         </table>
-
-        {/* Pagination Controls */}
-        <div className="flex justify-between items-center mt-4">
-          <button
-            onClick={handlePreviousPage}
-            className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <span className="text-black">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={handleNextPage}
-            className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 cursor-pointer"
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
-        </div>
-
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={loadMore}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-t-2 border-blue-500 rounded-full animate-spin"></div>
+              ) : (
+                "Muat Lebih Banyak"
+              )}
+            </button>
+          </div>
+        )}
         {/* Modal Form Add User */}
         <Modal
           isOpen={isModalOpen}

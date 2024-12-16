@@ -15,69 +15,92 @@ interface ImagesType {
 const Images: React.FC = () => {
   const [history, setHistory] = useState<ImagesType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [modalImage, setModalImage] = useState<string | null>(null); // State for the modal image
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const router = useRouter();
 
+  const ITEMS_PER_PAGE = 5;
+
   useEffect(() => {
-    const fetchHistory = async () => {
-      const token = localStorage.getItem("token");
-      const decoded = token ? decodeJWT(token) : null;
+    fetchHistory();
+  }, [router]);
 
-      if (!token || !decoded) {
-        router.push("/login");
-        return;
-      }
+  const fetchHistory = async (cursor?: string) => {
+    const token = localStorage.getItem("token");
+    const decoded = token ? decodeJWT(token) : null;
 
-      try {
-        const response = await fetch(`http://127.0.0.1:5001/get-images`, {
+    if (!token || !decoded) {
+      router.push("/login");
+      return;
+    }
+
+    const isInitialLoad = !cursor;
+    if (isInitialLoad) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5001/get-images?cursor=${
+          cursor || ""
+        }&limit=${ITEMS_PER_PAGE}`,
+        {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
-
-        if (!response.ok) {
-          console.error("Failed to fetch history");
-          return;
         }
+      );
 
-        const data = await response.json();
-
-        console.log("API Response Data:", data);
-
-        if (data?.data && Array.isArray(data.data)) {
-          const formattedHistory = data.data.map((item: any) => ({
-            gambar_id: item.gambar_id,
-            user_id: item.user_id,
-            imageBase64: item.gambar_hama,
-            uploadDate: item.upload_date,
-          }));
-
-          setHistory(formattedHistory);
-        } else {
-          setHistory([]);
-        }
-      } catch (error) {
-        console.error("Error fetching history:", error);
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        console.error("Failed to fetch history");
+        return;
       }
-    };
 
-    fetchHistory();
-  }, [router]);
+      const data = await response.json();
+      console.log("API Response Data:", data);
 
-  // Function to open the modal with the clicked image
+      if (data?.data && Array.isArray(data.data)) {
+        const formattedHistory = data.data.map((item: any) => ({
+          gambar_id: item.gambar_id,
+          user_id: item.user_id,
+          imageBase64: item.gambar_hama,
+          uploadDate: item.upload_date,
+        }));
+
+        setHistory((prev) =>
+          isInitialLoad ? formattedHistory : [...prev, ...formattedHistory]
+        );
+        setNextCursor(data.next_cursor || null);
+      }
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    } finally {
+      if (isInitialLoad) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
+  const loadMore = () => {
+    if (nextCursor) {
+      fetchHistory(nextCursor);
+    }
+  };
+
   const openModal = (image: string) => {
     setModalImage(image);
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setModalImage(null);
   };
 
-  // Spinner Component
   const Spinner = () => (
     <div className="flex justify-center items-center py-10">
       <div className="w-16 h-16 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
@@ -100,7 +123,6 @@ const Images: React.FC = () => {
     <div className="min-h-screen bg-gray-100 py-10 px-6 lg:px-20">
       <h1 className="text-2xl font-bold text-black mb-6">Riwayat Prediksi</h1>
 
-      {/* Back to Dashboard Button */}
       <Link href="/dashboard">
         <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
           <span className="mr-2">&larr;</span> Kembali
@@ -152,9 +174,23 @@ const Images: React.FC = () => {
             ))}
           </tbody>
         </table>
+        {nextCursor && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={loadMore}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center"
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? (
+                <div className="w-5 h-5 border-2 border-t-2 border-white rounded-full animate-spin"></div>
+              ) : (
+                "Muat Lebih Banyak"
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Modal for full-size image */}
       {modalImage && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-4 rounded-lg relative">
@@ -169,11 +205,10 @@ const Images: React.FC = () => {
               alt="Full size"
               className="max-w-full max-h-[80vh] mb-4"
             />
-            {/* Centered Download Button */}
             <div className="flex justify-center mt-4">
               <a
                 href={modalImage}
-                download="predicted_pest_image.jpg" // You can change the filename as needed
+                download="predicted_pest_image.jpg"
                 className="bg-blue-500 text-white py-2 px-4 rounded-lg text-center"
               >
                 Download Image
