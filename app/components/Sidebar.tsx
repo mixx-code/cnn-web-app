@@ -34,18 +34,31 @@ const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             </Link>
           </li>
           <li className="mb-4">
+            <Link
+              href="/dashboard/prediksi-hama"
+              className="hover:text-gray-400"
+            >
+              prediksi hama
+            </Link>
+          </li>
+          <li className="mb-4">
             <Link href="/dashboard/users" className="hover:text-gray-400">
-              Users
+              Petugas
             </Link>
           </li>
           <li className="mb-4">
             <Link href="/dashboard/predictions" className="hover:text-gray-400">
-              Predictions
+              Hasil Prediksi
             </Link>
           </li>
-          <li>
+          <li className="mb-4">
             <Link href="/dashboard/images" className="hover:text-gray-400">
-              Images
+              Gambar Hama
+            </Link>
+          </li>
+          <li className="mb-4">
+            <Link href="/dashboard/images" className="hover:text-gray-400">
+              Laporan Hasil Prediksi
             </Link>
           </li>
         </ul>

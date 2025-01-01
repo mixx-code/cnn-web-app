@@ -226,7 +226,7 @@ const Users = () => {
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
-              <th className="border border-gray-300 p-3">ID User</th>
+              <th className="border border-gray-300 p-3">ID Petugas</th>
               <th className="border border-gray-300 p-3">ID Admin</th>
               <th className="border border-gray-300 p-3">Name</th>
               <th className="border border-gray-300 p-3">Username</th>
