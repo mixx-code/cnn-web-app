@@ -46,7 +46,7 @@ const Admin = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/get-all-admin?cursor=${
+        `${process.env.NEXT_PUBLIC_API_URL}get-all-admin?cursor=${
           newCursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {
@@ -115,7 +115,7 @@ const Admin = () => {
   };
 
   const handleDelete = async (adminId: number): Promise<void> => {
-    const apiUrl = `http://127.0.0.1:5001/delete-admin/${adminId}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-admin/${adminId}`;
 
     try {
       const response = await fetch(apiUrl, {

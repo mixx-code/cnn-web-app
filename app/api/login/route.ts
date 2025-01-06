@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   try {
     // Melakukan POST request ke API eksternal
-    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

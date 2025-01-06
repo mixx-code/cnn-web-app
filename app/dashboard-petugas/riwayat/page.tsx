@@ -48,7 +48,7 @@ const Riwayat: React.FC = () => {
 
       const queryParam = cursor ? `?cursor=${cursor}&limit=10` : "?limit=10";
       const response = await fetch(
-        `http://127.0.0.1:5001/predictions-by-user_id/${decoded.id}${queryParam}`,
+        `${process.env.NEXT_PUBLIC_API_URL}predictions-by-user_id/${decoded.id}${queryParam}`,
         {
           method: "GET",
           headers: {

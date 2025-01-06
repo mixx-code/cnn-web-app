@@ -43,7 +43,7 @@ const Images: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/get-gambar-hama?cursor=${
+        `${process.env.NEXT_PUBLIC_API_URL}get-gambar-hama?cursor=${
           cursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {
@@ -91,7 +91,7 @@ const Images: React.FC = () => {
   }, [router]);
 
   const handleDelete = async (gambarId: number): Promise<void> => {
-    const apiUrl = `http://127.0.0.1:5001/delete-gambar-hama/${gambarId}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-gambar-hama/${gambarId}`;
 
     try {
       const response = await fetch(apiUrl, {

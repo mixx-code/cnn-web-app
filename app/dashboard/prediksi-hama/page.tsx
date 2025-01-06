@@ -71,7 +71,7 @@ const Home: React.FC = () => {
         return;
       }
 
-      const response = await fetch("http://127.0.0.1:5001/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

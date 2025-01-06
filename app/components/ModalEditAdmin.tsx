@@ -20,7 +20,7 @@ const ModalEditAdmin: React.FC<ModalEditAdminProps> = ({ admin, onClose }) => {
   const [password, setPassword] = useState(admin?.password || "");
 
   const handleEdit = async () => {
-    const apiUrl = `http://127.0.0.1:5001/edit-admin/${adminId}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}edit-admin/${adminId}`;
 
     const updateAdmin = {
       name,

@@ -18,28 +18,22 @@ interface PredictionHistory {
   tanggal: string;
 }
 
-const token = localStorage.getItem("token");
-console.log("ini token :", token);
-const decoded = token ? decodeJWT(token) : null;
-console.log("ini decoded token :", decoded);
-
 const Predictions: React.FC = () => {
   const [history, setHistory] = useState<PredictionHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingBuatLaporan, setLoadingBuatLaporan] = useState(false); // Menambahkan state loading
+  const [loadingBuatLaporan, setLoadingBuatLaporan] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalImage, setModalImage] = useState<string | null>(null);
-  const [cursor, setCursor] = useState<number | null>(null); // Cursor state for pagination
-  const [hasMore, setHasMore] = useState(true); // State to check if there's more data
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
 
-  const ITEMS_PER_PAGE = 10; // Number of items to fetch per page
+  const ITEMS_PER_PAGE = 10;
 
   const fetchHistory = async (newCursor: number | null = null) => {
     const token = localStorage.getItem("token");
-    console.log("ini token :", token);
     const decoded = token ? decodeJWT(token) : null;
-    console.log("ini decoded token :", decoded);
+
     if (!token || !decoded) {
       router.push("/login");
       return;
@@ -49,7 +43,7 @@ const Predictions: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/list_predictions?cursor=${
+        `${process.env.NEXT_PUBLIC_API_URL}list_predictions?cursor=${
           newCursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {
@@ -66,7 +60,6 @@ const Predictions: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log("data: ", data);
 
       if (data?.data && Array.isArray(data.data)) {
         const formattedHistory = data.data.map((item: any) => ({
@@ -78,18 +71,17 @@ const Predictions: React.FC = () => {
           tanggal: item.tanggal,
         }));
 
-        setHistory((prev) => {
-          const uniqueItems = formattedHistory.filter(
+        setHistory((prev) => [
+          ...prev,
+          ...formattedHistory.filter(
             (newItem: any) =>
               !prev.some(
                 (oldItem) => oldItem.prediksi_id === newItem.prediksi_id
               )
-          );
-          return [...prev, ...uniqueItems];
-        });
-
+          ),
+        ]);
         setCursor(data.next_cursor);
-        setHasMore(Boolean(data.next_cursor)); // Check if there's more data
+        setHasMore(Boolean(data.next_cursor));
       } else {
         setHasMore(false);
       }
@@ -104,47 +96,39 @@ const Predictions: React.FC = () => {
     fetchHistory();
   }, []);
 
-  // Function to load more data
   const loadMore = () => {
     if (cursor) {
       fetchHistory(cursor);
     }
   };
 
-  // Function to open the modal with the clicked image
   const openModal = (image: string) => {
     setModalImage(image);
+    setShowModal(true);
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setModalImage(null);
+    setShowModal(false);
   };
 
-  //handle buat laporan
   const handleBuatLaporan = async (prediksi_id: number) => {
     const token = localStorage.getItem("token");
-    console.log("ini token :", token);
-    // const decoded = token ? decodeJWT(token) : null;
-    // console.log("ini decoded token :", decoded);
-    // Menampilkan alert terlebih dahulu
     const confirmProceed = window.confirm(
       "Apakah Anda yakin ingin membuat laporan?"
     );
 
     if (!confirmProceed) {
-      return; // Jika pengguna membatalkan, keluar dari fungsi
+      return;
     }
 
-    // Set loading menjadi true dan tampilkan modal
     setLoadingBuatLaporan(true);
-    setShowModal(true);
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/buat-laporan-hasil-prediksi-by-id?prediksi_id=${prediksi_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}buat-laporan-hasil-prediksi-by-id?prediksi_id=${prediksi_id}`,
         {
-          method: "Post",
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -152,54 +136,20 @@ const Predictions: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Gagal mendapatkan laporan");
+        throw new Error("Gagal membuat laporan");
       }
 
-      const data = await response.json(); // Jika butuh data dari response
-
-      // Alihkan ke halaman dashboard/Laporan setelah API sukses
       router.push("/dashboard-petugas/Laporan");
     } catch (error) {
       console.error("Terjadi kesalahan:", error);
     } finally {
-      // Set loading menjadi false dan sembunyikan modal setelah proses selesai
       setLoadingBuatLaporan(false);
-      setShowModal(false);
     }
   };
 
-  const handleDelete = async (prediksiId: number): Promise<void> => {
-    const apiUrl = `http://127.0.0.1:5001/delete-hasil-prediksi/${prediksiId}`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
-          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete user: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log("User deleted successfully:", result);
-      window.location.reload(); // This will reload the page
-
-      // Tindakan tambahan setelah penghapusan berhasil
-      alert("User berhasil dihapus.");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("Terjadi kesalahan saat menghapus user.");
-    }
-  };
-
-  // Spinner Component
   const Spinner = () => (
     <div className="flex justify-center items-center py-10">
-      <div className="w-16 h-16 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+      <div className="w-16 h-16 border-4 border-t-4 border-blue-500 rounded-full animate-spin"></div>
     </div>
   );
 
@@ -306,57 +256,57 @@ const Predictions: React.FC = () => {
             </button>
           </div>
         )}
-      </div>
-      {/* Modal Loading */}
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded shadow-lg flex items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid mr-4"></div>
-            <span className="text-lg text-black">Membuat Laporan...</span>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for full-size image */}
-      {modalImage && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-4 rounded-lg relative">
-            <button
-              className="absolute -top-5 -right-5 p-3 w-12 text-white bg-red-500 rounded-full"
-              onClick={closeModal}
-            >
-              X
-            </button>
-            <div className="relative w-full h-auto max-h-[80vh]">
-              <Image
-                src={modalImage}
-                alt="Full size"
-                className="w-full max-h-[80vh] object-contain"
-                width={0}
-                height={0}
-                sizes="100vw"
-              />
+        {/* Modal Loading */}
+        {showModal && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded shadow-lg flex items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid mr-4"></div>
+              <span className="text-lg text-black">Membuat Laporan...</span>
             </div>
+          </div>
+        )}
 
-            {/* <Image
+        {/* Modal for full-size image */}
+        {modalImage && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-4 rounded-lg relative">
+              <button
+                className="absolute -top-5 -right-5 p-3 w-12 text-white bg-red-500 rounded-full"
+                onClick={closeModal}
+              >
+                X
+              </button>
+              <div className="relative w-full h-auto max-h-[80vh]">
+                <Image
+                  src={modalImage}
+                  alt="Full size"
+                  className="w-full max-h-[80vh] object-contain"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                />
+              </div>
+
+              {/* <Image
               src={modalImage}
               alt="Full size"
               className="max-w-full max-h-[80vh] mb-4"
               width={100%}
             /> */}
-            {/* Centered Download Button */}
-            <div className="flex justify-center mt-4">
-              <a
-                href={modalImage}
-                download="predicted_pest_image.jpg" // You can change the filename as needed
-                className="bg-blue-500 text-white py-2 px-4 rounded-lg text-center"
-              >
-                Download Image
-              </a>
+              {/* Centered Download Button */}
+              <div className="flex justify-center mt-4">
+                <a
+                  href={modalImage}
+                  download="predicted_pest_image.jpg" // You can change the filename as needed
+                  className="bg-blue-500 text-white py-2 px-4 rounded-lg text-center"
+                >
+                  Download Image
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

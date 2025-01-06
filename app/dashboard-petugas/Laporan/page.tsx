@@ -42,7 +42,7 @@ const Predictions: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/get-all-laporan?cursor=${
+        `${process.env.NEXT_PUBLIC_API_URL}get-all-laporan?cursor=${
           newCursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {

@@ -23,7 +23,7 @@ const ModalEditPetugas: React.FC<ModalEditPetugasProps> = ({
   const [password, setPassword] = useState(petugas?.password || "");
 
   const handleEdit = async () => {
-    const apiUrl = `http://127.0.0.1:5001/edit-petugas/${id}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}edit-petugas/${id}`;
 
     const updatedUser = {
       name,

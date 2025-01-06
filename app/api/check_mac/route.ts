@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     // Make the API call to the Flask server (adjust the URL as per your Flask setup)
-    const flaskApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/check_mac`;
+    const flaskApiUrl = `${process.env.NEXT_PUBLIC_API_URL}check_mac`;
 
     const response = await fetch(flaskApiUrl, {
       method: "POST",

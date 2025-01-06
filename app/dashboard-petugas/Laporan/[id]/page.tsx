@@ -52,7 +52,7 @@ export default function LaporanHama() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/get-laporan-hasil-prediksi-by-id?id_laporan=${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}get-laporan-hasil-prediksi-by-id?id_laporan=${id}`,
         {
           method: "GET",
           headers: {

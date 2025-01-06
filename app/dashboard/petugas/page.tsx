@@ -46,7 +46,7 @@ const Petugas = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/get-all-petugas?cursor=${
+        `${process.env.NEXT_PUBLIC_API_URL}get-all-petugas?cursor=${
           newCursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {
@@ -115,7 +115,7 @@ const Petugas = () => {
   };
 
   const handleDelete = async (petugasId: number): Promise<void> => {
-    const apiUrl = `http://127.0.0.1:5001/delete-petugas/${petugasId}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-petugas/${petugasId}`;
 
     try {
       const response = await fetch(apiUrl, {

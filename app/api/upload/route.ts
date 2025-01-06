@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   try {
     // Melakukan POST request ke API eksternal
-    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 //   }
 
 //   try {
-//     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+//     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
 //       method: 'POST',
 //       headers: {
 //         Authorization: `Bearer ${token}`,
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
 
 //   try {
 //     // Kirim formData ke Flask API untuk memproses gambar dan mendapatkan prediksi
-//     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+//     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
 //       method: "POST",
 //       headers: {
 //         'Content-Type': 'multipart/form-data',
