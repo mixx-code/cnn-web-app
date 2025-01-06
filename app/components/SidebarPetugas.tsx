@@ -11,7 +11,7 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
-const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
+const SidebarPetugas: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const router = useRouter();
 
   const handleLogout = () => {
@@ -30,40 +30,32 @@ const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       <nav>
         <ul>
           <li className="mb-4">
-            <Link href="/dashboard" className="hover:text-gray-400">
+            <Link href="/dashboard-petugas" className="hover:text-gray-400">
               Dashboard
             </Link>
           </li>
           <li className="mb-4">
             <Link
-              href="/dashboard/prediksi-hama"
+              href="/dashboard-petugas/prediksi-hama"
               className="hover:text-gray-400"
             >
               prediksi hama
             </Link>
           </li>
+
           <li className="mb-4">
-            <Link href="/dashboard/admin" className="hover:text-gray-400">
-              Admin
-            </Link>
-          </li>
-          <li className="mb-4">
-            <Link href="/dashboard/petugas" className="hover:text-gray-400">
-              Petugas
-            </Link>
-          </li>
-          <li className="mb-4">
-            <Link href="/dashboard/predictions" className="hover:text-gray-400">
+            <Link
+              href="/dashboard-petugas/predictions"
+              className="hover:text-gray-400"
+            >
               Hasil Prediksi
             </Link>
           </li>
           <li className="mb-4">
-            <Link href="/dashboard/images" className="hover:text-gray-400">
-              Gambar Hama
-            </Link>
-          </li>
-          <li className="mb-4">
-            <Link href="/dashboard/Laporan" className="hover:text-gray-400">
+            <Link
+              href="/dashboard-petugas/Laporan"
+              className="hover:text-gray-400"
+            >
               Laporan Hasil Prediksi
             </Link>
           </li>
@@ -81,4 +73,4 @@ const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   );
 };
 
-export default Sidebar;
+export default SidebarPetugas;

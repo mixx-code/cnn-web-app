@@ -9,7 +9,7 @@ const Header: React.FC = () => {
   const handleLogout = () => {
     // Hapus token dari localStorage
     localStorage.removeItem("token");
-    console.log("Token removed, user logged out."); // Debugging (Opsional)
+    console.log("Token removed, petugas logged out."); // Debugging (Opsional)
 
     // Redirect ke halaman login
     router.push("/login");

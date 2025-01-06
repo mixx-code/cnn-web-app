@@ -158,7 +158,7 @@ const Predictions: React.FC = () => {
       const data = await response.json(); // Jika butuh data dari response
 
       // Alihkan ke halaman dashboard/Laporan setelah API sukses
-      router.push("/dashboard/Laporan");
+      router.push("/dashboard-petugas/Laporan");
     } catch (error) {
       console.error("Terjadi kesalahan:", error);
     } finally {
@@ -181,20 +181,18 @@ const Predictions: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(
-          `Failed to delete hasil prediksi: ${response.statusText}`
-        );
+        throw new Error(`Failed to delete user: ${response.statusText}`);
       }
 
       const result = await response.json();
-      console.log("hasil prediksi deleted successfully:", result);
+      console.log("User deleted successfully:", result);
       window.location.reload(); // This will reload the page
 
       // Tindakan tambahan setelah penghapusan berhasil
-      alert("hasil prediksi berhasil dihapus.");
+      alert("User berhasil dihapus.");
     } catch (error) {
-      console.error("Error deleting hasil prediksi:", error);
-      alert("Terjadi kesalahan saat menghapus hasil prediksi.");
+      console.error("Error deleting user:", error);
+      alert("Terjadi kesalahan saat menghapus user.");
     }
   };
 
@@ -221,7 +219,7 @@ const Predictions: React.FC = () => {
     <div className="min-h-screen bg-gray-100 py-10 px-6 lg:px-20">
       <div className="bg-white p-8 rounded-lg shadow-lg">
         {/* Back to Dashboard Button */}
-        <Link href="/dashboard">
+        <Link href="/dashboard-petugas">
           <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
             <span className="mr-2">&larr;</span> Kembali
           </span>
@@ -285,12 +283,6 @@ const Predictions: React.FC = () => {
                     onClick={() => handleBuatLaporan(item.prediksi_id)}
                   >
                     Buat Laporan
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-red-500 text-white rounded"
-                    onClick={() => handleDelete(item.prediksi_id)}
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>

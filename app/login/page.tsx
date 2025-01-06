@@ -51,13 +51,13 @@ const LoginPage = () => {
 
         alert("Login berhasil!");
 
-        // Cek apakah user adalah admin
+        // Cek apakah is_admin adalah admin
         if (decoded && decoded.is_admin) {
           // Redirect ke dashboard jika is_admin true
           router.push("/dashboard");
         } else if (decoded) {
           // Redirect ke root jika is_admin false
-          router.push("/dashboard-user");
+          router.push("/dashboard-petugas");
         }
       } else {
         setError(data.message || "Login gagal.");

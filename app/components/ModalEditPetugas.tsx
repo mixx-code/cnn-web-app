@@ -1,33 +1,34 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 
-interface User {
-  user_id: number;
-  admin_id: number;
+interface Petugas {
+  petugas_id: number;
   name: string;
   username: string;
   password: string;
 }
 
-interface ModalEditUserProps {
-  user: User | null;
+interface ModalEditPetugasProps {
+  petugas: Petugas | null;
   onClose: () => void;
 }
 
-const ModalEditUser: React.FC<ModalEditUserProps> = ({ user, onClose }) => {
-  const [id, setId] = useState(user?.user_id || "");
-  const [adminId, setAdminId] = useState(user?.admin_id || "");
-  const [name, setName] = useState(user?.name || "");
-  const [username, setUsername] = useState(user?.username || "");
-  const [password, setPassword] = useState(user?.password || "");
+const ModalEditPetugas: React.FC<ModalEditPetugasProps> = ({
+  petugas,
+  onClose,
+}) => {
+  const [id, setId] = useState(petugas?.petugas_id || "");
+  const [name, setName] = useState(petugas?.name || "");
+  const [username, setUsername] = useState(petugas?.username || "");
+  const [password, setPassword] = useState(petugas?.password || "");
 
   const handleEdit = async () => {
-    const apiUrl = `http://127.0.0.1:5001/edit-user/${id}`;
+    const apiUrl = `http://127.0.0.1:5001/edit-petugas/${id}`;
 
     const updatedUser = {
       name,
       username,
       password,
-      adminId,
     };
 
     // Misalkan token diambil dari localStorage atau state
@@ -44,25 +45,25 @@ const ModalEditUser: React.FC<ModalEditUserProps> = ({ user, onClose }) => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to update user: ${response.statusText}`);
+        throw new Error(`Failed to update petugas: ${response.statusText}`);
       }
 
       const result = await response.json();
-      console.log("User updated successfully:", result);
+      console.log("petugas updated successfully:", result);
       // Optionally close the modal after successful submission
-      alert("berhasil tambah user");
+      alert("berhasil tambah petugas");
       window.location.reload(); // This will reload the page
 
       onClose(); // Menutup modal setelah data berhasil disimpan
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Error updating petugas:", error);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded shadow-lg w-96">
-        <h2 className="text-xl mb-4">Edit User</h2>
+        <h2 className="text-xl mb-4">Edit Petugas</h2>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Name
@@ -115,4 +116,4 @@ const ModalEditUser: React.FC<ModalEditUserProps> = ({ user, onClose }) => {
   );
 };
 
-export default ModalEditUser;
+export default ModalEditPetugas;

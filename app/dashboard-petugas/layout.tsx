@@ -1,9 +1,10 @@
+// app/dashboard/layout.tsx
 "use client";
-import Sidebar from "../components/Sidebar";
 import React, { useEffect, useState } from "react";
 import { decodeJWT } from "../../utils/decodeToken";
 import { useRouter } from "next/navigation";
 import { FaBars, FaTimes } from "react-icons/fa";
+import SidebarPetugas from "../components/SidebarPetugas";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -27,6 +28,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       try {
         const decoded = decodeJWT(token);
 
+        // Log the decoded token to the console
+        console.log("Decoded Token:", decoded);
+
         if (!decoded) {
           console.log("Invalid token. Redirecting to login.");
           localStorage.removeItem("token");
@@ -42,14 +46,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        if (decoded.is_admin === false) {
-          console.log(
-            "Petugas is not an admin. Redirecting to petugas dashboard."
-          );
-          router.push("/dashboard-petugas"); // Redirect to a non-admin petugas page or dashboard
-          return;
+        if (decoded.is_admin) {
+          console.log("Redirecting to admin dashboard.");
         } else {
-          console.log("Admin access granted.");
+          console.log("Redirecting to admin dashboard.");
         }
       } catch (error) {
         console.error("Error handling token:", error);
@@ -63,9 +63,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     checkToken();
   }, [router]);
 
-  // If loading, don't render anything
   if (isLoading) {
-    return <div>Loading...</div>; // Display loading indicator while token is being checked
+    return <div></div>;
   }
 
   return (
@@ -76,7 +75,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           isSidebarOpen ? "block" : "hidden"
         }`}
       >
-        <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <SidebarPetugas
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
       </div>
 
       {/* Navbar Hamburger Button */}

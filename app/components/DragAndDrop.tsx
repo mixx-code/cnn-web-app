@@ -5,7 +5,7 @@ import React, {
   ChangeEvent,
   DragEvent,
 } from "react";
-
+import Image from "next/image";
 interface DragAndDropProps {
   setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
 }
@@ -64,10 +64,11 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ setSelectedFile }) => {
     >
       {previewUrl ? (
         <>
-          <img
+          <Image
             src={previewUrl}
             alt="Preview"
-            className="h-full object-contain"
+            fill // Untuk memastikan gambar memenuhi container-nya
+            className="object-contain h-full"
           />
           <button
             onClick={handleDeleteImage}

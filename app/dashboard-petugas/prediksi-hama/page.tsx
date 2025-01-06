@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import DragAndDrop from "../components/DragAndDrop";
-import PredictionResult from "../components/PredictionResult";
-import ButtonCekHama from "../components/ButtonCekHama";
+import DragAndDrop from "../../components/DragAndDrop";
+import PredictionResult from "../../components/PredictionResult";
+import ButtonCekHama from "../../components/ButtonCekHama";
 import { useRouter } from "next/navigation";
-import { decodeJWT } from "../../utils/decodeToken";
-import Link from "next/link";
+import { decodeJWT } from "../../../utils/decodeToken";
+import PredictionResultSkeleton from "@/app/components/PredictionResultSkeleton";
 
 interface PredictionData {
   success: boolean;
@@ -112,23 +112,25 @@ const Home: React.FC = () => {
           <ButtonCekHama onClick={handleFileUpload} />
         </div>
 
-        {predictionData && predictionData.data && (
+        {predictionData && predictionData.data ? (
           <PredictionResult
             pestName={predictionData.data.predicted_class}
             percentage={predictionData.data.prediction_percentage}
             all_probabilities={predictionData.data.all_probabilities}
           />
+        ) : (
+          <PredictionResultSkeleton />
         )}
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-lg mt-10 text-center">
+      {/* <div className="bg-white p-6 rounded-lg shadow-lg mt-10 text-center">
         <Link
           href="dashboard-user/riwayat"
           className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
         >
           Lihat Riwayat Prediksi Saya
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 };

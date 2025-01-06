@@ -1,15 +1,19 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
+import Image from "next/image";
 
 interface PredictionHistory {
   id: number;
-  user_id: number;
+  petugas_id: number;
   prediksi_id: number;
-  imageBase64: string;
+  gambar_hama: string;
+  name: string;
   predictedClass: string;
   predictionPercentage: string;
   predictionDate: string;
@@ -38,7 +42,7 @@ const Predictions: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/list_predictions?cursor=${
+        `http://127.0.0.1:5001/get-all-laporan?cursor=${
           newCursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {
@@ -59,18 +63,19 @@ const Predictions: React.FC = () => {
 
       if (data?.data && Array.isArray(data.data)) {
         const formattedHistory = data.data.map((item: any) => ({
-          id: item.prediksi_id,
-          user_id: item.user_id,
+          id: item.id_laporan,
+          petugas_id: item.petugas_id,
           prediksi_id: item.prediksi_id,
-          imageBase64: item.image_base64,
+          name: item.name,
+          gambar_hama: item.gambar_hama,
           predictedClass: item.prediction_result,
           predictionPercentage: item.prediction_percentage,
-          predictionDate: item.predicted_at,
+          predictionDate: item.tanggal,
         }));
 
         setHistory((prev) => {
           const uniqueItems = formattedHistory.filter(
-            (newItem) => !prev.some((oldItem) => oldItem.id === newItem.id)
+            (newItem: any) => !prev.some((oldItem) => oldItem.id === newItem.id)
           );
           return [...prev, ...uniqueItems];
         });
@@ -90,6 +95,34 @@ const Predictions: React.FC = () => {
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  const handleDelete = async (laporanId: number): Promise<void> => {
+    const apiUrl = `http://127.0.0.1:5001/delete-laporan-hasil-prediksi/${laporanId}`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
+          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete laporan: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("laporan deleted successfully:", result);
+      window.location.reload(); // This will reload the page
+
+      // Tindakan tambahan setelah penghapusan berhasil
+      alert("laporan berhasil dihapus.");
+    } catch (error) {
+      console.error("Error deleting laporan:", error);
+      alert("Terjadi kesalahan saat menghapus laporan.");
+    }
+  };
 
   // Function to load more data
   const loadMore = () => {
@@ -136,18 +169,23 @@ const Predictions: React.FC = () => {
             <span className="mr-2">&larr;</span> Kembali
           </span>
         </Link>
-        <h1 className="text-2xl font-bold text-black mb-6">Riwayat Prediksi</h1>
+        <h1 className="text-2xl font-bold text-black mb-6">
+          Laporan Hasil Prediksi
+        </h1>
 
         <table className="w-full table-auto border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
-              <th className="border border-gray-300 p-3">ID Petugas</th>
+              <th className="border border-gray-300 p-3">ID Laporan</th>
               <th className="border border-gray-300 p-3">ID Prediksi</th>
-              <th className="border border-gray-300 p-3">Gambar</th>
-              <th className="border border-gray-300 p-3">Hama</th>
+              <th className="border border-gray-300 p-3">ID Petugas</th>
+              <th className="border border-gray-300 p-3">Nama</th>
+              <th className="border border-gray-300 p-3">Gambar Hama</th>
+              <th className="border border-gray-300 p-3">Jenis Hama</th>
               <th className="border border-gray-300 p-3">Presentase</th>
-              <th className="border border-gray-300 p-3">Tanggal Prediksi</th>
+              <th className="border border-gray-300 p-3">Tanggal</th>
+              <th className="border border-gray-300 p-3">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -162,19 +200,27 @@ const Predictions: React.FC = () => {
                   {index + 1}
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
-                  {item.user_id}
+                  {item.id}
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {item.prediksi_id}
                 </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {item.petugas_id}
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {item.name}
+                </td>
                 <td
                   className="border border-gray-300 p-3 text-center cursor-pointer"
-                  onClick={() => openModal(item.imageBase64)}
+                  onClick={() => openModal(item.gambar_hama)}
                 >
-                  <img
-                    src={item.imageBase64}
+                  <Image
+                    src={item.gambar_hama}
                     alt="Predicted Pest"
-                    className="w-16 h-16 object-cover mx-auto"
+                    className="object-cover mx-auto"
+                    width={64}
+                    height={64}
                   />
                 </td>
                 <td className="border border-gray-300 p-3 capitalize text-black">
@@ -185,6 +231,27 @@ const Predictions: React.FC = () => {
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {new Date(item.predictionDate).toLocaleDateString("id-ID")}
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {/* <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+                    // onClick={() => handleEdit(user.user_id)}
+                  >
+                    Detail Laporan
+                  </button> */}
+                  <Link
+                    href={`/dashboard/Laporan/${item.id}`} // Ganti sesuai dengan path tujuan Anda
+                    passHref
+                    className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+                  >
+                    Detail Laporan
+                  </Link>
+                  <button
+                    className="px-4 py-2 bg-red-500 text-white rounded"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -219,11 +286,15 @@ const Predictions: React.FC = () => {
             >
               X
             </button>
-            <img
+            <Image
               src={modalImage}
               alt="Full size"
-              className="max-w-full max-h-[80vh] mb-4"
+              className="w-full max-h-[80vh] object-contain"
+              width={0}
+              height={0}
+              sizes="100vw"
             />
+
             {/* Centered Download Button */}
             <div className="flex justify-center mt-4">
               <a

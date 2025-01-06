@@ -47,8 +47,8 @@ const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         console.log("Redirecting to admin dashboard.");
         router.push("/dashboard");
       } else {
-        console.log("Redirecting to user dashboard.");
-        router.push("/dashboard-user");
+        console.log("Redirecting to petugas dashboard.");
+        router.push("/dashboard-petugas");
       }
     } catch (error) {
       console.error("Error handling token:", error);

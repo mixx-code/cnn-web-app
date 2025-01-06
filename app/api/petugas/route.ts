@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   // URL of the backend Flask API
-  const BACKEND_URL = 'http://localhost:5001/register-user'; // Change this URL to match your Flask API endpoint
+  const BACKEND_URL = 'http://localhost:5001/register-petugas'; // Change this URL to match your Flask API endpoint
   const token = req.headers.get('Authorization'); // Ambil token dari header permintaan
 
   // If the token is missing, return a 403 response
@@ -14,17 +14,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Parse the incoming request body to get user data (name, username, password, etc.)
+    // Parse the incoming request body to get petugas data (name, username, password, etc.)
     const { name, username, password } = await req.json();
 
-    // Forward the request to the backend with the token and user data
+    // Forward the request to the backend with the token and petugas data
     const response = await fetch(BACKEND_URL, {
       method: 'POST',
       headers: {
         Authorization: token, // Pass token to backend API
         'Content-Type': 'application/json', // Ensure the correct content type
       },
-      body: JSON.stringify({ name, username, password }), // Send the user data in the body
+      body: JSON.stringify({ name, username, password }), // Send the petugas data in the body
     });
 
     // Parse the response from the backend
@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: 201 }); // Status 201 for successful creation
   } catch (error) {
     // If an error occurs while connecting to the backend, return a 500 error
-    console.error('Error creating user:', error);
+    console.error('Error creating petugas:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to create user.' },
+      { success: false, message: 'Failed to create petugas.' },
       { status: 500 }
     );
   }

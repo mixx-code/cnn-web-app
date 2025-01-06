@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -8,24 +8,29 @@ import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
 import Image from "next/image";
 
-interface ImagesType {
-  gambar_id: number;
-  petugas_id: number;
+interface PredictionHistory {
+  id: number;
+  prediksi_id: number;
   imageBase64: string;
-  tanggal: string;
+  predictedClass: string;
+  predictionPercentage: string;
+  predictionDate: string;
 }
 
-const Images: React.FC = () => {
-  const [history, setHistory] = useState<ImagesType[]>([]);
+const Riwayat: React.FC = () => {
+  const [history, setHistory] = useState<PredictionHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
   const [modalImage, setModalImage] = useState<string | null>(null);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const router = useRouter();
 
-  const ITEMS_PER_PAGE = 5;
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
-  const fetchHistory = async (cursor?: string) => {
+  const fetchHistory = async (loadMore = false) => {
     const token = localStorage.getItem("token");
     const decoded = token ? decodeJWT(token) : null;
 
@@ -34,18 +39,16 @@ const Images: React.FC = () => {
       return;
     }
 
-    const isInitialLoad = !cursor;
-    if (isInitialLoad) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
     try {
+      if (loadMore) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      const queryParam = cursor ? `?cursor=${cursor}&limit=10` : "?limit=10";
       const response = await fetch(
-        `http://127.0.0.1:5001/get-gambar-hama?cursor=${
-          cursor || ""
-        }&limit=${ITEMS_PER_PAGE}`,
+        `http://127.0.0.1:5001/predictions-by-user_id/${decoded.id}${queryParam}`,
         {
           method: "GET",
           headers: {
@@ -60,67 +63,35 @@ const Images: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log("API Response Data:", data);
 
       if (data?.data && Array.isArray(data.data)) {
         const formattedHistory = data.data.map((item: any) => ({
-          gambar_id: item.gambar_id,
-          petugas_id: item.petugas_id,
-          imageBase64: item.gambar_hama,
-          tanggal: item.tanggal,
+          id: item.prediksi_id,
+          prediksi_id: item.prediksi_id,
+          imageBase64: item.image_base64,
+          predictedClass: item.prediction_result,
+          predictionPercentage: item.prediction_percentage,
+          predictionDate: item.predicted_at,
         }));
 
-        setHistory((prev) =>
-          isInitialLoad ? formattedHistory : [...prev, ...formattedHistory]
+        setHistory((prevHistory) =>
+          loadMore ? [...prevHistory, ...formattedHistory] : formattedHistory
         );
-        setNextCursor(data.next_cursor || null);
+
+        setCursor(data.next_cursor || null);
+        setHasMore(Boolean(data.next_cursor));
+      } else {
+        setHistory([]);
+        setHasMore(false);
       }
     } catch (error) {
       console.error("Error fetching history:", error);
     } finally {
-      if (isInitialLoad) {
-        setIsLoading(false);
-      } else {
+      if (loadMore) {
         setIsLoadingMore(false);
+      } else {
+        setIsLoading(false);
       }
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, [router]);
-
-  const handleDelete = async (gambarId: number): Promise<void> => {
-    const apiUrl = `http://127.0.0.1:5001/delete-gambar-hama/${gambarId}`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
-          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete gambar: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log("gambar deleted successfully:", result);
-      window.location.reload(); // This will reload the page
-
-      // Tindakan tambahan setelah penghapusan berhasil
-      alert("gambar berhasil dihapus.");
-    } catch (error) {
-      console.error("Error deleting gambar:", error);
-      alert("Terjadi kesalahan saat menghapus gambar.");
-    }
-  };
-
-  const loadMore = () => {
-    if (nextCursor) {
-      fetchHistory(nextCursor);
     }
   };
 
@@ -145,36 +116,37 @@ const Images: React.FC = () => {
   if (history.length === 0) {
     return (
       <div className="text-center mt-10 text-gray-600">
-        Tidak ada Gambar Hama.
+        Tidak ada riwayat prediksi.
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-6 lg:px-20">
+      <h1 className="text-2xl font-bold text-black mb-6">Riwayat Prediksi</h1>
+
+      <Link href="/dashboard-petugas">
+        <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
+          <span className="mr-2">&larr;</span> Kembali
+        </span>
+      </Link>
+
       <div className="bg-white p-8 rounded-lg shadow-lg">
-        {/* Back to Dashboard Button */}
-        <Link href="/dashboard">
-          <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
-            <span className="mr-2">&larr;</span> Kembali
-          </span>
-        </Link>
-        <h1 className="text-2xl font-bold text-black mb-6">Gambar Hama</h1>
         <table className="w-full table-auto border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
-              <th className="border border-gray-300 p-3">ID Gambar</th>
-              <th className="border border-gray-300 p-3">ID Petugas</th>
+              <th className="border border-gray-300 p-3">ID Prediksi</th>
               <th className="border border-gray-300 p-3">Gambar</th>
-              <th className="border border-gray-300 p-3">Tanggal</th>
-              <th className="border border-gray-300 p-3">Action</th>
+              <th className="border border-gray-300 p-3">Hama</th>
+              <th className="border border-gray-300 p-3">Presentase</th>
+              <th className="border border-gray-300 p-3">Tanggal Prediksi</th>
             </tr>
           </thead>
           <tbody>
             {history.map((item, index) => (
               <tr
-                key={item.gambar_id}
+                key={item.id}
                 className={`${
                   index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"
                 } hover:bg-blue-100 transition duration-300`}
@@ -183,10 +155,7 @@ const Images: React.FC = () => {
                   {index + 1}
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
-                  {item.gambar_id}
-                </td>
-                <td className="border border-gray-300 p-3 text-center text-black">
-                  {item.petugas_id}
+                  {item.prediksi_id}
                 </td>
                 <td
                   className="border border-gray-300 p-3 text-center cursor-pointer"
@@ -195,38 +164,31 @@ const Images: React.FC = () => {
                   <Image
                     src={item.imageBase64}
                     alt="Predicted Pest"
-                    className="object-cover mx-auto"
-                    width={64}
-                    height={64}
+                    className="w-16 h-16 object-cover mx-auto"
                   />
                 </td>
-                <td className="border border-gray-300 p-3 text-center text-black">
-                  {new Date(item.tanggal).toLocaleDateString("id-ID")}
+                <td className="border border-gray-300 p-3 capitalize text-black">
+                  {item.predictedClass.replace(/_/g, " ")}
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
-                  <button
-                    className="px-4 py-2 bg-red-500 text-white rounded"
-                    onClick={() => handleDelete(item.gambar_id)}
-                  >
-                    Delete
-                  </button>
+                  {item.predictionPercentage || "N/A"}%
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  {new Date(item.predictionDate).toLocaleDateString("id-ID")}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {nextCursor && (
+
+        {hasMore && (
           <div className="flex justify-center mt-6">
             <button
-              onClick={loadMore}
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center"
+              className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition duration-300"
+              onClick={() => fetchHistory(true)}
               disabled={isLoadingMore}
             >
-              {isLoadingMore ? (
-                <div className="w-5 h-5 border-2 border-t-2 border-white rounded-full animate-spin"></div>
-              ) : (
-                "Muat Lebih Banyak"
-              )}
+              {isLoadingMore ? "Memuat..." : "Muat Lebih Banyak"}
             </button>
           </div>
         )}
@@ -241,16 +203,11 @@ const Images: React.FC = () => {
             >
               X
             </button>
-            <div className="relative w-full h-auto max-h-[80vh]">
-              <Image
-                src={modalImage}
-                alt="Full size"
-                className="w-full max-h-[80vh] object-contain"
-                width={0}
-                height={0}
-                sizes="100vw"
-              />
-            </div>
+            <Image
+              src={modalImage}
+              alt="Full size"
+              className="max-w-full max-h-[80vh] mb-4"
+            />
             <div className="flex justify-center mt-4">
               <a
                 href={modalImage}
@@ -267,4 +224,4 @@ const Images: React.FC = () => {
   );
 };
 
-export default Images;
+export default Riwayat;

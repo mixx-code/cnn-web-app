@@ -1,30 +1,32 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState } from "react";
-import Modal from "../../components/Modal"; // Import modal
-import ModalEditUser from "../../components/ModalEditUser";
 import Link from "next/link";
 import { decodeJWT } from "@/utils/decodeToken";
 import { useRouter } from "next/navigation";
+import ModalEditAdmin from "@/app/components/ModalEditAdmin";
+import ModalTambahAdmin from "@/app/components/ModalTambahAdmin";
 
-interface User {
-  user_id: number;
+interface Admin {
   admin_id: number;
   name: string;
   username: string;
   password: string;
-  created_at: string;
+  tanggal: string;
 }
 
-const Users = () => {
+const Admin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalEditUserOpen, setIsModalEditUserOpen] =
+  const [isModalEditAdminOpen, setIsModalEditAdminOpen] =
     useState<boolean>(false);
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [adminToEdit, setadminToEdit] = useState<Admin | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cursor, setCursor] = useState<number | null>(null); // Cursor state for pagination
   const [hasMore, setHasMore] = useState(true); // State to check if there's more data
-  const [history, setHistory] = useState<User[]>([]);
+  const [history, setHistory] = useState<Admin[]>([]);
   const router = useRouter();
 
   const ITEMS_PER_PAGE = 10;
@@ -44,7 +46,7 @@ const Users = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5001/get-all-users?cursor=${
+        `http://127.0.0.1:5001/get-all-admin?cursor=${
           newCursor || ""
         }&limit=${ITEMS_PER_PAGE}`,
         {
@@ -65,18 +67,17 @@ const Users = () => {
 
       if (data?.data && Array.isArray(data.data)) {
         const formattedHistory = data.data.map((item: any) => ({
-          user_id: item.user_id,
           admin_id: item.admin_id,
           name: item.name,
           username: item.username,
           password: item.password,
-          created_at: item.created_at,
+          tanggal: item.tanggal,
         }));
 
         setHistory((prev) => {
           const uniqueItems = formattedHistory.filter(
-            (newItem) =>
-              !prev.some((oldItem) => oldItem.user_id === newItem.user_id)
+            (newItem: any) =>
+              !prev.some((oldItem) => oldItem.admin_id === newItem.admin_id)
           );
           return [...prev, ...uniqueItems];
         });
@@ -104,60 +105,17 @@ const Users = () => {
     }
   };
 
-  // Fetch user data from the backend with pagination
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     const token = localStorage.getItem("token"); // Get token from localStorage
+  const handleEdit = (adminId: number) => {
+    console.log("Edit Adminwith ID:", adminId);
 
-  //     if (!token) {
-  //       setError("Token is missing. Please log in.");
-  //       setIsLoading(false);
-  //       return;
-  //     }
-
-  //     try {
-  //       const response = await fetch(
-  //         `/api/getAllUsers?page=${currentPage}&per_page=${usersPerPage}`,
-  //         {
-  //           method: "GET",
-  //           headers: {
-  //             Authorization: `Bearer ${token}`, // Include token in header
-  //           },
-  //         }
-  //       );
-
-  //       const data = await response.json();
-
-  //       if (!response.ok) {
-  //         setError(data.message || "Failed to fetch users.");
-  //         setIsLoading(false);
-  //         return;
-  //       }
-
-  //       setUsers(data.data || []); // Save users data in state
-  //       setTotalPages(data.totalPages || 1); // Save total pages
-  //       setIsLoading(false); // Stop loading after data is fetched
-  //     } catch (error) {
-  //       console.error("Error fetching users:", error);
-  //       setError("An unexpected error occurred.");
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchUsers();
-  // }, [currentPage]); // Refetch when currentPage changes
-
-  const handleEdit = (userId: number) => {
-    console.log("Edit user with ID:", userId);
-
-    const user = history.find((user) => user.user_id === userId);
-    console.log("id user: ", user);
-    setUserToEdit(user || null);
-    setIsModalEditUserOpen(true);
+    const admin = history.find((admin) => admin.admin_id === adminId);
+    console.log("id admin: ", admin);
+    setadminToEdit(admin || null);
+    setIsModalEditAdminOpen(true);
   };
 
-  const handleDelete = async (userId: number): Promise<void> => {
-    const apiUrl = `http://127.0.0.1:5001/delete-user/${userId}`;
+  const handleDelete = async (adminId: number): Promise<void> => {
+    const apiUrl = `http://127.0.0.1:5001/delete-admin/${adminId}`;
 
     try {
       const response = await fetch(apiUrl, {
@@ -169,24 +127,24 @@ const Users = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete user: ${response.statusText}`);
+        throw new Error(`Failed to delete admin: ${response.statusText}`);
       }
 
       const result = await response.json();
-      console.log("User deleted successfully:", result);
+      console.log("admin deleted successfully:", result);
       window.location.reload(); // This will reload the page
 
       // Tindakan tambahan setelah penghapusan berhasil
-      alert("User berhasil dihapus.");
+      alert("admin berhasil dihapus.");
     } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("Terjadi kesalahan saat menghapus user.");
+      console.error("Error deleting admin:", error);
+      alert("Terjadi kesalahan saat menghapus admin.");
     }
   };
 
   const handleCloseModal = () => {
-    setIsModalEditUserOpen(false);
-    setUserToEdit(null);
+    setIsModalEditAdminOpen(false);
+    setadminToEdit(null);
   };
 
   if (isLoading) {
@@ -211,13 +169,13 @@ const Users = () => {
                 <span className="mr-2">&larr;</span> Kembali
               </span>
             </Link>
-            <h1 className="text-2xl font-bold text-black mb-6">Data User</h1>
+            <h1 className="text-2xl font-bold text-black mb-6">Data Admin</h1>
           </span>
           <button
             onClick={toggleModal}
             className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
           >
-            Add User
+            Add Admin
           </button>
         </div>
 
@@ -226,12 +184,11 @@ const Users = () => {
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
               <th className="border border-gray-300 p-3">#</th>
-              <th className="border border-gray-300 p-3">ID Petugas</th>
               <th className="border border-gray-300 p-3">ID Admin</th>
-              <th className="border border-gray-300 p-3">Name</th>
               <th className="border border-gray-300 p-3">Username</th>
               <th className="border border-gray-300 p-3">Password</th>
-              <th className="border border-gray-300 p-3">Created At</th>
+              <th className="border border-gray-300 p-3">Name</th>
+              <th className="border border-gray-300 p-3">Tanggal</th>
               <th className="border border-gray-300 p-3">Actions</th>
             </tr>
           </thead>
@@ -243,9 +200,9 @@ const Users = () => {
                 </td>
               </tr>
             ) : (
-              history.map((user, index) => (
+              history.map((admin, index) => (
                 <tr
-                  key={user.user_id}
+                  key={admin.admin_id}
                   className={`${
                     index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"
                   } hover:bg-blue-100 transition duration-300`}
@@ -254,33 +211,30 @@ const Users = () => {
                     {index + 1}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
-                    {user.user_id}
+                    {admin.admin_id}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
-                    {user.admin_id}
+                    {admin.name}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
-                    {user.name}
+                    {admin.username}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
-                    {user.username}
+                    {admin.password}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
-                    {user.password}
-                  </td>
-                  <td className="border border-gray-300 p-3 text-center text-black">
-                    {new Date(user.created_at).toLocaleDateString("id-ID")}
+                    {new Date(admin.tanggal).toLocaleDateString("id-ID")}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
                     <button
                       className="px-4 py-2 bg-yellow-500 text-white rounded mr-2"
-                      onClick={() => handleEdit(user.user_id)}
+                      onClick={() => handleEdit(admin.admin_id)}
                     >
                       Edit
                     </button>
                     <button
                       className="px-4 py-2 bg-red-500 text-white rounded"
-                      onClick={() => handleDelete(user.user_id)}
+                      onClick={() => handleDelete(admin.admin_id)}
                     >
                       Delete
                     </button>
@@ -306,19 +260,19 @@ const Users = () => {
             </button>
           </div>
         )}
-        {/* Modal Form Add User */}
-        <Modal
+        {/* Modal Form Add Admin*/}
+        <ModalTambahAdmin
           isOpen={isModalOpen}
           toggleModal={toggleModal}
-          title="Add New User"
+          title="Add New Admin"
         />
 
-        {isModalEditUserOpen && userToEdit && (
-          <ModalEditUser user={userToEdit} onClose={handleCloseModal} />
+        {isModalEditAdminOpen && adminToEdit && (
+          <ModalEditAdmin admin={adminToEdit} onClose={handleCloseModal} />
         )}
       </div>
     </div>
   );
 };
 
-export default Users;
+export default Admin;

@@ -6,7 +6,11 @@ interface ModalProps {
   title: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, toggleModal, title }) => {
+const ModalTambahAdmin: React.FC<ModalProps> = ({
+  isOpen,
+  toggleModal,
+  title,
+}) => {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +22,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, toggleModal, title }) => {
     const token = localStorage.getItem("token"); // Misalnya token disimpan di localStorage
 
     try {
-      const response = await fetch("/api/petugas", {
+      const response = await fetch("/api/admin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,16 +36,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, toggleModal, title }) => {
       });
 
       if (response.ok) {
-        console.log("petugas added successfully");
+        console.log("admin added successfully");
         // Optionally close the modal after successful submission
-        alert("berhasil tambah petugas");
+        alert("berhasil tambah admin");
         window.location.reload(); // This will reload the page
         toggleModal();
       } else {
-        console.error("Failed to save petugas");
+        console.error("Failed to save admin");
       }
     } catch (error) {
-      console.error("Error saving petugas:", error);
+      console.error("Error saving admin:", error);
     }
   };
 
@@ -112,4 +116,4 @@ const Modal: React.FC<ModalProps> = ({ isOpen, toggleModal, title }) => {
   );
 };
 
-export default Modal;
+export default ModalTambahAdmin;
