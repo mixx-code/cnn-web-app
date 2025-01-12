@@ -117,6 +117,7 @@ const Home: React.FC = () => {
             pestName={predictionData.data.predicted_class}
             percentage={predictionData.data.prediction_percentage}
             all_probabilities={predictionData.data.all_probabilities}
+            halaman="/dashboard/predictions"
           />
         ) : (
           <PredictionResultSkeleton />

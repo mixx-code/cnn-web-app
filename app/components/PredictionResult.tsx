@@ -1,18 +1,21 @@
+import Link from "next/link";
 import React from "react";
 
 interface PredictionResultProps {
-  pestName: string; // Define the type of pestName
-  percentage: string; // Define the type of percentage
-  all_probabilities: Record<string, string>; // Define the type for all_probabilities
+  pestName: string; // Nama hama
+  percentage: string; // Persentase hasil prediksi
+  all_probabilities: Record<string, string>; // Probabilitas semua kelas
+  halaman: string; // URL halaman untuk tombol
 }
 
 const PredictionResult: React.FC<PredictionResultProps> = ({
   pestName,
   percentage,
   all_probabilities,
+  halaman,
 }) => {
   return (
-    <div className="w-full max-w-5xl mx-auto  rounded-lg ">
+    <div className="w-full max-w-5xl mx-auto rounded-lg ">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-center justify-between bg-blue-100 text-blue-900 font-bold rounded-t-lg px-4 sm:px-6 py-3 shadow-md">
         <span className="text-sm sm:text-base">Hasil prediksi:</span>
@@ -44,12 +47,21 @@ const PredictionResult: React.FC<PredictionResultProps> = ({
             </li>
           ))}
         </ul>
+        {/* Centered Button Section */}
+        <div className="flex justify-center mt-4">
+          <Link href={halaman}>
+            <span className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600">
+              Lihat lebih banyak
+            </span>
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
 export default PredictionResult;
+
 
 // import React from "react";
 

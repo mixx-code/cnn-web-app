@@ -91,8 +91,15 @@ const Images: React.FC = () => {
   }, [router]);
 
   const handleDelete = async (gambarId: number): Promise<void> => {
+    // Tampilkan konfirmasi sebelum menghapus
+    const isConfirmed = window.confirm("Apakah Anda yakin ingin menghapus gambar hama ini?");
+  
+    if (!isConfirmed) {
+      return; // Jika tidak dikonfirmasi, hentikan eksekusi
+    }
+  
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-gambar-hama/${gambarId}`;
-
+  
     try {
       const response = await fetch(apiUrl, {
         method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
@@ -101,15 +108,15 @@ const Images: React.FC = () => {
           "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
         },
       });
-
+  
       if (!response.ok) {
         throw new Error(`Failed to delete gambar: ${response.statusText}`);
       }
-
+  
       const result = await response.json();
       console.log("gambar deleted successfully:", result);
       window.location.reload(); // This will reload the page
-
+  
       // Tindakan tambahan setelah penghapusan berhasil
       alert("gambar berhasil dihapus.");
     } catch (error) {
@@ -117,6 +124,7 @@ const Images: React.FC = () => {
       alert("Terjadi kesalahan saat menghapus gambar.");
     }
   };
+  
 
   const loadMore = () => {
     if (nextCursor) {

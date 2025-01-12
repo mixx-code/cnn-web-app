@@ -117,20 +117,12 @@ const Home: React.FC = () => {
             pestName={predictionData.data.predicted_class}
             percentage={predictionData.data.prediction_percentage}
             all_probabilities={predictionData.data.all_probabilities}
+            halaman="/dashboard-petugas/predictions"
           />
         ) : (
           <PredictionResultSkeleton />
         )}
       </div>
-
-      {/* <div className="bg-white p-6 rounded-lg shadow-lg mt-10 text-center">
-        <Link
-          href="dashboard-user/riwayat"
-          className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-        >
-          Lihat Riwayat Prediksi Saya
-        </Link>
-      </div> */}
     </div>
   );
 };
