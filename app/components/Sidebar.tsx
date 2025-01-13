@@ -5,6 +5,7 @@
 import React, { FC } from "react";
 import Link from "next/link"; // Import Link from next/link
 import { useRouter } from "next/navigation"; // Correct import for useRouter in the app directory
+import Image from "next/image";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -24,9 +25,13 @@ const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     <div
       className={`${
         isSidebarOpen ? "block" : "hidden"
-      } lg:block w-full lg:w-64 bg-gray-800 text-white p-6 transition-all duration-300`}
+      } lg:block w-full lg:w-72 bg-gray-800 text-white p-6 transition-all duration-300`}
     >
-      <h2 className="text-2xl font-semibold mb-6">Admin Dashboard</h2>
+      <div className="flex items-center space-x-4 lg:w-72 my-2">
+        <Image src="/assets/img/logo.png" alt="logo" width={45} height={45} />
+        <h2 className="text-xl font-semibold">Dashboard Admin</h2>
+      </div>
+
       <nav>
         <ul>
           <li className="mb-4">
@@ -44,27 +49,27 @@ const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           </li>
           <li className="mb-4">
             <Link href="/dashboard/admin" className="hover:text-gray-400">
-              Admin
+              Tabel Admin
             </Link>
           </li>
           <li className="mb-4">
             <Link href="/dashboard/petugas" className="hover:text-gray-400">
-              Petugas
+              Tabel Petugas
             </Link>
           </li>
           <li className="mb-4">
             <Link href="/dashboard/predictions" className="hover:text-gray-400">
-              Hasil Prediksi
+              Tabel Hasil Prediksi
             </Link>
           </li>
           <li className="mb-4">
-            <Link href="/dashboard/images" className="hover:text-gray-400">
-              Gambar Hama
+            <Link href="/dashboard/gambar-hama" className="hover:text-gray-400">
+              Tabel Gambar Hama
             </Link>
           </li>
           <li className="mb-4">
             <Link href="/dashboard/Laporan" className="hover:text-gray-400">
-              Laporan Hasil Prediksi
+              Tabel Laporan Hasil Prediksi
             </Link>
           </li>
         </ul>

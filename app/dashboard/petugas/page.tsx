@@ -169,7 +169,9 @@ const Petugas = () => {
                 <span className="mr-2">&larr;</span> Kembali
               </span>
             </Link>
-            <h1 className="text-2xl font-bold text-black mb-6">Data Petugas</h1>
+            <h1 className="text-2xl font-bold text-black mb-6">
+              Tabel Petugas
+            </h1>
           </span>
           <button
             onClick={toggleModal}
@@ -183,11 +185,11 @@ const Petugas = () => {
         <table className="min-w-full table-auto">
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
-              <th className="border border-gray-300 p-3">#</th>
+              <th className="border border-gray-300 p-3">No</th>
               <th className="border border-gray-300 p-3">ID Petugas</th>
-              <th className="border border-gray-300 p-3">Name</th>
               <th className="border border-gray-300 p-3">Username</th>
               <th className="border border-gray-300 p-3">Password</th>
+              <th className="border border-gray-300 p-3">Name</th>
               <th className="border border-gray-300 p-3">Tanggal</th>
               <th className="border border-gray-300 p-3">Actions</th>
             </tr>
@@ -214,13 +216,13 @@ const Petugas = () => {
                     {user.petugas_id}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
-                    {user.name}
-                  </td>
-                  <td className="border border-gray-300 p-3 text-center text-black">
                     {user.username}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
                     {user.password}
+                  </td>
+                  <td className="border border-gray-300 p-3 text-center text-black">
+                    {user.name}
                   </td>
                   <td className="border border-gray-300 p-3 text-center text-black">
                     {new Date(user.tanggal).toLocaleDateString("id-ID")}

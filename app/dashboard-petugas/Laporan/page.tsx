@@ -142,7 +142,7 @@ const Predictions: React.FC = () => {
           </span>
         </Link>
         <h1 className="text-2xl font-bold text-black mb-6">
-          Laporan Hasil Prediksi
+          Tabel Laporan Hasil Prediksi
         </h1>
 
         <table className="w-full table-auto border-collapse border border-gray-300">

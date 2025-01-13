@@ -72,7 +72,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Sidebar */}
       <div
-        className={`lg:w-64 w-full bg-gray-800 text-white lg:fixed lg:h-screen ${
+        className={`lg:w-72 w-full bg-gray-800 text-white lg:fixed lg:h-screen ${
           isSidebarOpen ? "block" : "hidden"
         }`}
       >
@@ -92,7 +92,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </button>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 pt-20 lg:pt-8 lg:ml-64 bg-gray-100">
+      <div className="flex-1 p-8 pt-20 lg:pt-8 lg:ml-72 bg-gray-100">
         {children}
       </div>
     </div>

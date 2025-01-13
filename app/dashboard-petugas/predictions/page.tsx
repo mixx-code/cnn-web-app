@@ -11,10 +11,10 @@ import Image from "next/image";
 
 interface PredictionHistory {
   prediksi_id: number;
-  petugas_id: number;
-  imageBase64: string;
+  gambar_id: number;
   predictedClass: string;
   predictionPercentage: string;
+  allProbabilities: Record<string, number>;
   tanggal: string;
 }
 
@@ -25,6 +25,10 @@ const Predictions: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
+  const [modalProbabilities, setModalProbabilities] = useState<Record<
+    string,
+    number
+  > | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
 
@@ -64,11 +68,11 @@ const Predictions: React.FC = () => {
       if (data?.data && Array.isArray(data.data)) {
         const formattedHistory = data.data.map((item: any) => ({
           prediksi_id: item.prediksi_id,
-          petugas_id: item.petugas_id,
-          imageBase64: item.image_base64,
+          gambar_id: item.gambar_id,
           predictedClass: item.prediction_result,
           predictionPercentage: item.prediction_percentage,
           tanggal: item.tanggal,
+          allProbabilities: item.all_probabilities,
         }));
 
         setHistory((prev) => [
@@ -147,6 +151,14 @@ const Predictions: React.FC = () => {
     }
   };
 
+  const openProbabilitiesModal = (probabilities: Record<string, number>) => {
+    setModalProbabilities(probabilities);
+  };
+
+  const closeProbabilitiesModal = () => {
+    setModalProbabilities(null);
+  };
+
   const Spinner = () => (
     <div className="flex justify-center items-center py-10">
       <div className="w-16 h-16 border-4 border-t-4 border-blue-500 rounded-full animate-spin"></div>
@@ -169,24 +181,28 @@ const Predictions: React.FC = () => {
     <div className="min-h-screen bg-gray-100 py-10 px-6 lg:px-20">
       <div className="bg-white p-8 rounded-lg shadow-lg">
         {/* Back to Dashboard Button */}
-        <Link href="/dashboard-petugas">
+        <Link href="/dashboard">
           <span className="inline-flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg mb-6 hover:bg-blue-600 transition duration-300 cursor-pointer">
             <span className="mr-2">&larr;</span> Kembali
           </span>
         </Link>
-        <h1 className="text-2xl font-bold text-black mb-6">Hasil Prediksi</h1>
+        <h1 className="text-2xl font-bold text-black mb-6">
+          Tabel Hasil Prediksi
+        </h1>
 
         <table className="w-full table-auto border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
-              <th className="border border-gray-300 p-3">#</th>
+              <th className="border border-gray-300 p-3">No</th>
               <th className="border border-gray-300 p-3">ID Prediksi</th>
-              <th className="border border-gray-300 p-3">ID Petugas</th>
-              <th className="border border-gray-300 p-3">Gambar</th>
-              <th className="border border-gray-300 p-3">Hama</th>
-              <th className="border border-gray-300 p-3">Presentase</th>
-              <th className="border border-gray-300 p-3">Tanggal Prediksi</th>
-              <th className="border border-gray-300 p-3">action</th>
+              <th className="border border-gray-300 p-3">ID Gambar</th>
+              <th className="border border-gray-300 p-3">prediction Result</th>
+              <th className="border border-gray-300 p-3">
+                Prediction Percentage
+              </th>
+              <th className="border border-gray-300 p-3">All Probabilitas</th>
+              <th className="border border-gray-300 p-3">Tanggal</th>
+              <th className="border border-gray-300 p-3">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -204,25 +220,23 @@ const Predictions: React.FC = () => {
                   {item.prediksi_id}
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
-                  {item.petugas_id}
-                </td>
-                <td
-                  className="border border-gray-300 p-3 text-center cursor-pointer"
-                  onClick={() => openModal(item.imageBase64)}
-                >
-                  <Image
-                    src={item.imageBase64}
-                    alt="Predicted Pest"
-                    className="object-cover mx-auto"
-                    width={64}
-                    height={64}
-                  />
+                  {item.gambar_id}
                 </td>
                 <td className="border border-gray-300 p-3 capitalize text-black">
                   {item.predictedClass.replace(/_/g, " ")}
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {item.predictionPercentage || "N/A"}
+                </td>
+                <td className="border border-gray-300 p-3 text-center text-black">
+                  <button
+                    onClick={() =>
+                      openProbabilitiesModal(item.allProbabilities)
+                    }
+                    className="px-4 py-2 bg-yellow-500 text-white rounded mr-2"
+                  >
+                    View
+                  </button>
                 </td>
                 <td className="border border-gray-300 p-3 text-center text-black">
                   {new Date(item.tanggal).toLocaleDateString("id-ID")}
@@ -239,6 +253,30 @@ const Predictions: React.FC = () => {
             ))}
           </tbody>
         </table>
+        {/* Load More Probabilities */}
+        {modalProbabilities && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+            <div className="bg-white w-96 p-6 rounded-lg shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-800 border-b pb-3 mb-4">
+                All Probabilities
+              </h2>
+              <ul className="space-y-2">
+                {Object.entries(modalProbabilities).map(([key, value]) => (
+                  <li key={key} className="flex justify-between text-gray-700">
+                    <span className="capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="font-semibold">{value.toFixed(2)}%</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={closeProbabilitiesModal}
+                className="mt-6 w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Load More Button */}
         {hasMore && (

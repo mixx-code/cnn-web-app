@@ -170,20 +170,22 @@ const Predictions: React.FC = () => {
           </span>
         </Link>
         <h1 className="text-2xl font-bold text-black mb-6">
-          Laporan Hasil Prediksi
+          Tabel Laporan Hasil Prediksi
         </h1>
 
         <table className="w-full table-auto border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
-              <th className="border border-gray-300 p-3">#</th>
+              <th className="border border-gray-300 p-3">No</th>
               <th className="border border-gray-300 p-3">ID Laporan</th>
               <th className="border border-gray-300 p-3">ID Prediksi</th>
               <th className="border border-gray-300 p-3">ID Petugas</th>
-              <th className="border border-gray-300 p-3">Nama</th>
+              <th className="border border-gray-300 p-3">Name</th>
               <th className="border border-gray-300 p-3">Gambar Hama</th>
-              <th className="border border-gray-300 p-3">Jenis Hama</th>
-              <th className="border border-gray-300 p-3">Presentase</th>
+              <th className="border border-gray-300 p-3">Prediction Result</th>
+              <th className="border border-gray-300 p-3">
+                Prediction Percentage
+              </th>
               <th className="border border-gray-300 p-3">Tanggal</th>
               <th className="border border-gray-300 p-3">Action</th>
             </tr>

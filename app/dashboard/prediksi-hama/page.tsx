@@ -105,6 +105,7 @@ const Home: React.FC = () => {
   return (
     <div>
       {/* <Header /> */}
+      <h1 className="text-2xl font-bold text-black mb-6">Prediksi Hama</h1>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-8">
         <div className="bg-white p-8 rounded-lg shadow-lg">

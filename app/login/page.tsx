@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { decodeJWT } from "../../utils/decodeToken";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -70,8 +71,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
+    <div className="flex flex-col h-screen items-center justify-center bg-gray-100 ">
       <div className="w-full max-w-md bg-white p-6 rounded shadow-md">
+        <div className="flex justify-center mb-4">
+          <Image src="/assets/img/logo.png" alt="Logo" height={64} width={64} />
+        </div>
+
         <h1 className="text-xl font-bold text-center text-black mb-4">Login</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -110,18 +115,21 @@ const LoginPage = () => {
           </div>
           <button
             type="submit"
-            disabled={loading} // Disabled saat loading
+            disabled={loading}
             className={`w-full py-2 rounded-md shadow font-medium ${
               loading
                 ? "bg-gray-600 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 text-white"
             }`}
           >
-            {loading ? "Loading..." : "Login"} {/* Teks berubah saat loading */}
+            {loading ? "Loading..." : "Login"}
           </button>
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         </form>
       </div>
+      <p className="mt-4 text-sm text-gray-500 text-center lowercase">
+        pemerintah kabupaten lebak kecamatan cikulur desa sumurbandung
+      </p>
     </div>
   );
 };

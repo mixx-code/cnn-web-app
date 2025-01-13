@@ -73,14 +73,14 @@ const Dashboard = () => {
       {/* Card Petugas */}
       <Card
         icon={<FaUserAlt className="text-blue-500" size={40} />}
-        title="Admin"
+        title="Tabel Admin"
         description="Jumlah Petugas"
         value={summary?.total_admin.toString() || "0"} // Menggunakan data dari API
         link="/dashboard/admin"
       />
       <Card
         icon={<FaUserAlt className="text-blue-500" size={40} />}
-        title="Petugas"
+        title="Tabel Petugas"
         description="Jumlah Petugas"
         value={summary?.total_petugas.toString() || "0"} // Menggunakan data dari API
         link="/dashboard/petugas"
@@ -89,7 +89,7 @@ const Dashboard = () => {
       {/* Card Hasil Prediksi */}
       <Card
         icon={<FaClipboardList className="text-green-500" size={40} />}
-        title="Hasil Prediksi"
+        title="Tabel Hasil Prediksi"
         description="Jumlah Hasil Prediksi"
         value={summary?.total_hasil_prediksi.toString() || "0"} // Menggunakan data dari API
         link="/dashboard/predictions"
@@ -98,10 +98,10 @@ const Dashboard = () => {
       {/* Card Gambar Hama */}
       <Card
         icon={<FaRegImage className="text-yellow-500" size={40} />}
-        title="Gambar Hama"
+        title="Tabel Gambar Hama"
         description="Jumlah Gambar Hama"
         value={summary?.total_gambar_hama.toString() || "0"} // Menggunakan data dari API
-        link="/dashboard/images"
+        link="/dashboard/gambar-hama"
       />
       {/* Card Laporan Hasil Prediksi */}
       <Card

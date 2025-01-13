@@ -169,7 +169,7 @@ const Admin = () => {
                 <span className="mr-2">&larr;</span> Kembali
               </span>
             </Link>
-            <h1 className="text-2xl font-bold text-black mb-6">Data Admin</h1>
+            <h1 className="text-2xl font-bold text-black mb-6">Tabel Admin</h1>
           </span>
           <button
             onClick={toggleModal}
@@ -183,7 +183,7 @@ const Admin = () => {
         <table className="min-w-full table-auto">
           <thead>
             <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm">
-              <th className="border border-gray-300 p-3">#</th>
+              <th className="border border-gray-300 p-3">No</th>
               <th className="border border-gray-300 p-3">ID Admin</th>
               <th className="border border-gray-300 p-3">Username</th>
               <th className="border border-gray-300 p-3">Password</th>
