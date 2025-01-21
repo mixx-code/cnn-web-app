@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 interface PredictionHistory {
   id: number;
@@ -98,29 +99,58 @@ const Predictions: React.FC = () => {
 
   const handleDelete = async (laporanId: number): Promise<void> => {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-laporan-hasil-prediksi/${laporanId}`;
-
+  
     try {
+      // Show SweetAlert2 confirmation dialog
+      const isConfirmed = await Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: 'Anda tidak dapat mengembalikan laporan setelah dihapus!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Hapus',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+      });
+  
+      if (!isConfirmed.isConfirmed) {
+        return; // If user cancels, stop execution
+      }
+  
       const response = await fetch(apiUrl, {
-        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
+        method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
-          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
       });
-
+  
       if (!response.ok) {
         throw new Error(`Failed to delete laporan: ${response.statusText}`);
       }
-
+  
       const result = await response.json();
       console.log("laporan deleted successfully:", result);
-      window.location.reload(); // This will reload the page
-
-      // Tindakan tambahan setelah penghapusan berhasil
-      alert("laporan berhasil dihapus.");
+  
+      // Reload the page after successful deletion
+      window.location.reload();
+  
+      // Show SweetAlert2 success message
+      Swal.fire({
+        title: 'Berhasil!',
+        text: 'Laporan berhasil dihapus.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error("Error deleting laporan:", error);
-      alert("Terjadi kesalahan saat menghapus laporan.");
+  
+      // Show SweetAlert2 error message
+      Swal.fire({
+        title: 'Terjadi Kesalahan',
+        text: 'Terjadi kesalahan saat menghapus laporan.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
     }
   };
 

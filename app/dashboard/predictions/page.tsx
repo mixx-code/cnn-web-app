@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 interface PredictionHistory {
   prediksi_id: number;
@@ -119,11 +120,18 @@ const Predictions: React.FC = () => {
 
   const handleBuatLaporan = async (prediksi_id: number) => {
     const token = localStorage.getItem("token");
-    const confirmProceed = window.confirm(
-      "Apakah Anda yakin ingin membuat laporan?"
-    );
 
-    if (!confirmProceed) {
+    // SweetAlert2 for confirmation
+    const confirmProceed = await Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: "Anda ingin membuat laporan untuk hasil prediksi ini?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, buat laporan!',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!confirmProceed.isConfirmed) {
       return;
     }
 
@@ -144,15 +152,40 @@ const Predictions: React.FC = () => {
         throw new Error("Gagal membuat laporan");
       }
 
+      Swal.fire(
+        'Berhasil!',
+        'Laporan berhasil dibuat.',
+        'success'
+      );
+
       router.push("/dashboard/Laporan");
     } catch (error) {
       console.error("Terjadi kesalahan:", error);
+      Swal.fire(
+        'Gagal!',
+        'Terjadi kesalahan saat membuat laporan.',
+        'error'
+      );
     } finally {
       setLoadingBuatLaporan(false);
     }
   };
 
   const handleDelete = async (prediksiId: number) => {
+    // SweetAlert2 for delete confirmation
+    const confirmDelete = await Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: "Data ini akan dihapus permanen!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!confirmDelete.isConfirmed) {
+      return;
+    }
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}delete-hasil-prediksi/${prediksiId}`,
@@ -171,8 +204,19 @@ const Predictions: React.FC = () => {
       setHistory((prev) =>
         prev.filter((item) => item.prediksi_id !== prediksiId)
       );
+
+      Swal.fire(
+        'Berhasil!',
+        'Hasil prediksi berhasil dihapus.',
+        'success'
+      );
     } catch (error) {
       console.error("Error deleting hasil prediksi:", error);
+      Swal.fire(
+        'Gagal!',
+        'Terjadi kesalahan saat menghapus hasil prediksi.',
+        'error'
+      );
     }
   };
 
@@ -355,14 +399,6 @@ const Predictions: React.FC = () => {
                   sizes="100vw"
                 />
               </div>
-
-              {/* <Image
-              src={modalImage}
-              alt="Full size"
-              className="max-w-full max-h-[80vh] mb-4"
-              width={100%}
-            /> */}
-              {/* Centered Download Button */}
               <div className="flex justify-center mt-4">
                 <a
                   href={modalImage}

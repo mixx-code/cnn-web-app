@@ -8,6 +8,7 @@ import Link from "next/link";
 import { decodeJWT } from "@/utils/decodeToken";
 import { useRouter } from "next/navigation";
 import ModalEditPetugas from "../../components/ModalEditPetugas";
+import Swal from "sweetalert2";
 
 interface Petugas {
   petugas_id: number;
@@ -116,30 +117,57 @@ const Petugas = () => {
 
   const handleDelete = async (petugasId: number): Promise<void> => {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-petugas/${petugasId}`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
-          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete user: ${response.statusText}`);
+  
+    // Tampilkan konfirmasi sebelum menghapus
+    Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Data petugas akan dihapus secara permanen!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Gagal menghapus user: ${response.statusText}`);
+          }
+  
+          const result = await response.json();
+          console.log("User deleted successfully:", result);
+  
+          // Tampilkan alert sukses dan reload halaman setelah animasi selesai
+          Swal.fire({
+            title: "Terhapus!",
+            text: "Petugas telah dihapus.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          }).then(() => {
+            window.location.reload(); // Reload setelah alert selesai
+          });
+        } catch (error) {
+          console.error("Error deleting user:", error);
+  
+          // Tampilkan alert error jika terjadi kesalahan
+          Swal.fire({
+            title: "Gagal!",
+            text: "Terjadi kesalahan saat menghapus petugas.",
+            icon: "error",
+          });
+        }
       }
-
-      const result = await response.json();
-      console.log("User deleted successfully:", result);
-      window.location.reload(); // This will reload the page
-
-      // Tindakan tambahan setelah penghapusan berhasil
-      alert("User berhasil dihapus.");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("Terjadi kesalahan saat menghapus user.");
-    }
+    });
   };
 
   const handleCloseModal = () => {

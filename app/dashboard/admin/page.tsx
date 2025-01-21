@@ -8,6 +8,7 @@ import { decodeJWT } from "@/utils/decodeToken";
 import { useRouter } from "next/navigation";
 import ModalEditAdmin from "@/app/components/ModalEditAdmin";
 import ModalTambahAdmin from "@/app/components/ModalTambahAdmin";
+import Swal from "sweetalert2";
 
 interface Admin {
   admin_id: number;
@@ -115,32 +116,53 @@ const Admin = () => {
   };
 
   const handleDelete = async (adminId: number): Promise<void> => {
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-admin/${adminId}`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
-          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete admin: ${response.statusText}`);
+    Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Data admin akan dihapus secara permanen!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}delete-admin/${adminId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+  
+          if (!response.ok) {
+            throw new Error(`Failed to delete admin: ${response.statusText}`);
+          }
+  
+          const result = await response.json();
+          console.log("Admin deleted successfully:", result);
+  
+          // Menampilkan SweetAlert2 sukses dan reload setelah animasi selesai
+          Swal.fire({
+            title: "Terhapus!",
+            text: "Admin telah dihapus.",
+            icon: "success",
+            showConfirmButton: false,
+          }).then(() => {
+            window.location.reload();
+          });
+        } catch (error) {
+          console.error("Error deleting admin:", error);
+          Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus admin.", "error");
+        }
       }
-
-      const result = await response.json();
-      console.log("admin deleted successfully:", result);
-      window.location.reload(); // This will reload the page
-
-      // Tindakan tambahan setelah penghapusan berhasil
-      alert("admin berhasil dihapus.");
-    } catch (error) {
-      console.error("Error deleting admin:", error);
-      alert("Terjadi kesalahan saat menghapus admin.");
-    }
+    });
   };
+  
 
   const handleCloseModal = () => {
     setIsModalEditAdminOpen(false);

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { decodeJWT } from "../../utils/decodeToken";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -19,45 +20,51 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // Set loading ke true saat proses login dimulai
-
+    setLoading(true); // Set loading to true when the login process starts
+  
     if (!username || !password) {
       setError("Username dan password harus diisi.");
-      setLoading(false); // Set loading kembali ke false jika validasi gagal
+      setLoading(false); // Set loading back to false if validation fails
       return;
     }
-
+  
     try {
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
+  
       if (!response.ok) {
         throw new Error("Username atau password salah.");
       }
-
-      // Menangkap data dari response JSON
+  
+      // Capture the data from the JSON response
       const data = await response.json();
-
+  
       if (data.success) {
         const token = data.data.token;
-        // Menyimpan token ke dalam localStorage
+        // Save token to localStorage
         localStorage.setItem("token", token);
-
-        // Dekode token menggunakan decodeJWT
+  
+        // Decode the token using decodeJWT
         const decoded = decodeJWT(token);
-        setDecodedToken(decoded); // Menyimpan decoded token ke state
-
-        alert("Login berhasil!");
-
-        // Cek apakah is_admin adalah admin
+        setDecodedToken(decoded); // Save the decoded token to state
+  
+        // Show SweetAlert2 success alert for successful login
+        Swal.fire({
+          title: 'Login Berhasil!',
+          text: 'Selamat datang, Anda berhasil login!',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+  
+        // Check if is_admin is true
         if (decoded && decoded.is_admin) {
-          // Redirect ke dashboard jika is_admin true
+          // Redirect to dashboard if is_admin is true
           router.push("/dashboard");
         } else if (decoded) {
-          // Redirect ke root jika is_admin false
+          // Redirect to the user dashboard if is_admin is false
           router.push("/dashboard-petugas");
         }
       } else {
@@ -66,13 +73,14 @@ const LoginPage = () => {
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setLoading(false); // Set loading kembali ke false setelah proses selesai
+      setLoading(false); // Set loading back to false after the process ends
     }
   };
+  
 
   return (
     <div className="flex flex-col h-screen items-center justify-center bg-gray-100 ">
-      <div className="w-full max-w-md bg-white p-6 rounded shadow-md">
+      <div className="w-full max-w-md bg-white p-6 rounded shadow-lg">
         <div className="flex justify-center mb-4">
           <Image src="/assets/img/logo.png" alt="Logo" height={64} width={64} />
         </div>
@@ -128,7 +136,7 @@ const LoginPage = () => {
         </form>
       </div>
       <p className="mt-4 text-sm text-gray-500 text-center lowercase">
-        pemerintah kabupaten lebak kecamatan cikulur desa sumurbandung
+        pemerintah kabupaten lebak kecamatan cikulur desa sumurbandung <br/> Koperasi Buru Tani
       </p>
     </div>
   );

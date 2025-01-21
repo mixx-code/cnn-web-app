@@ -7,6 +7,7 @@ import ButtonCekHama from "../../components/ButtonCekHama";
 import { useRouter } from "next/navigation";
 import { decodeJWT } from "../../../utils/decodeToken";
 import PredictionResultSkeleton from "@/app/components/PredictionResultSkeleton";
+import Swal from "sweetalert2";
 
 interface PredictionData {
   success: boolean;
@@ -53,46 +54,80 @@ const Home: React.FC = () => {
     checkToken();
   }, [router]);
 
-  const handleFileUpload = async () => {
-    if (!selectedFile) {
-      alert("Please select a file before uploading.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
-    setIsLoading(true); // Set loading to true when the request starts
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("No token found. Please login again.");
+    const handleFileUpload = async () => {
+      if (!selectedFile) {
+        // Show SweetAlert2 error alert when no file is selected
+        Swal.fire({
+          title: 'Peringatan',
+          text: 'Please select a file before uploading.',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+        });
         return;
       }
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setPredictionData({
-          success: true,
-          message: result.message || "Prediction successful",
-          data: result.data,
+    
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+    
+      setIsLoading(true); // Set loading to true when the request starts
+    
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          // Show SweetAlert2 error alert when no token is found
+          Swal.fire({
+            title: 'Kesalahan',
+            text: 'No token found. Please login again.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+          });
+          return;
+        }
+    
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
         });
-      } else {
-        alert("Upload failed.");
+    
+        if (response.ok) {
+          const result = await response.json();
+          setPredictionData({
+            success: true,
+            message: result.message || "Prediction successful",
+            data: result.data,
+          });
+    
+          // Show SweetAlert2 success alert on successful upload
+          Swal.fire({
+            title: 'Berhasil!',
+            text: result.message || "Prediction successful",
+            icon: 'success',
+            confirmButtonText: 'OK',
+          });
+        } else {
+          // Show SweetAlert2 error alert on upload failure
+          Swal.fire({
+            title: 'Gagal!',
+            text: "Upload failed.",
+            icon: 'error',
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error("Error during file upload:", error);
+    
+        // Show SweetAlert2 error alert on exception
+        Swal.fire({
+          title: 'Terjadi Kesalahan',
+          text: 'An error occurred during file upload.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      } finally {
+        setIsLoading(false); // Set loading to false once the request is done
       }
-    } catch {
-      alert("An error occurred during file upload.");
-    } finally {
-      setIsLoading(false); // Set loading to false once the request is done
-    }
-  };
+    };
 
   if (isLoading) {
     return (

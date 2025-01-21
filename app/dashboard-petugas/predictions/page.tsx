@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 interface PredictionHistory {
   prediksi_id: number;
@@ -118,11 +119,18 @@ const Predictions: React.FC = () => {
 
   const handleBuatLaporan = async (prediksi_id: number) => {
     const token = localStorage.getItem("token");
-    const confirmProceed = window.confirm(
-      "Apakah Anda yakin ingin membuat laporan?"
-    );
 
-    if (!confirmProceed) {
+    // SweetAlert2 for confirmation
+    const confirmProceed = await Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: "Anda ingin membuat laporan untuk hasil prediksi ini?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, buat laporan!',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!confirmProceed.isConfirmed) {
       return;
     }
 
@@ -143,9 +151,20 @@ const Predictions: React.FC = () => {
         throw new Error("Gagal membuat laporan");
       }
 
+      Swal.fire(
+        'Berhasil!',
+        'Laporan berhasil dibuat.',
+        'success'
+      );
+
       router.push("/dashboard-petugas/Laporan");
     } catch (error) {
       console.error("Terjadi kesalahan:", error);
+      Swal.fire(
+        'Gagal!',
+        'Terjadi kesalahan saat membuat laporan.',
+        'error'
+      );
     } finally {
       setLoadingBuatLaporan(false);
     }

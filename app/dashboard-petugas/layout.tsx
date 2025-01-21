@@ -63,10 +63,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     checkToken();
   }, [router]);
 
-  if (isLoading) {
-    return <div></div>;
-  }
-
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Sidebar */}
@@ -95,7 +91,13 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <div className="flex-1 p-8 pt-20 lg:pt-8 lg:ml-72 bg-gray-100">
-        {children}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="border-t-4 border-blue-500 border-solid w-16 h-16 rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          children // Show children after loading is done
+        )}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import ButtonCekHama from "../../components/ButtonCekHama";
 import { useRouter } from "next/navigation";
 import { decodeJWT } from "../../../utils/decodeToken";
 import PredictionResultSkeleton from "@/app/components/PredictionResultSkeleton";
+import Swal from "sweetalert2";
 
 interface PredictionData {
   success: boolean;
@@ -55,28 +56,40 @@ const Home: React.FC = () => {
 
   const handleFileUpload = async () => {
     if (!selectedFile) {
-      alert("Please select a file before uploading.");
+      // Show SweetAlert2 error alert when no file is selected
+      Swal.fire({
+        title: 'Peringatan',
+        text: 'Please select a file before uploading.',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+      });
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("file", selectedFile);
-
+  
     setIsLoading(true); // Set loading to true when the request starts
-
+  
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("No token found. Please login again.");
+        // Show SweetAlert2 error alert when no token is found
+        Swal.fire({
+          title: 'Kesalahan',
+          text: 'No token found. Please login again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
         return;
       }
-
+  
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
+  
       if (response.ok) {
         const result = await response.json();
         setPredictionData({
@@ -84,15 +97,38 @@ const Home: React.FC = () => {
           message: result.message || "Prediction successful",
           data: result.data,
         });
+  
+        // Show SweetAlert2 success alert on successful upload
+        Swal.fire({
+          title: 'Berhasil!',
+          text: result.message || "Prediction successful",
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
       } else {
-        alert("Upload failed.");
+        // Show SweetAlert2 error alert on upload failure
+        Swal.fire({
+          title: 'Gagal!',
+          text: "Upload failed.",
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
       }
-    } catch {
-      alert("An error occurred during file upload.");
+    } catch (error) {
+      console.error("Error during file upload:", error);
+  
+      // Show SweetAlert2 error alert on exception
+      Swal.fire({
+        title: 'Terjadi Kesalahan',
+        text: 'An error occurred during file upload.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
     } finally {
       setIsLoading(false); // Set loading to false once the request is done
     }
   };
+  
 
   if (isLoading) {
     return (
@@ -124,15 +160,6 @@ const Home: React.FC = () => {
           <PredictionResultSkeleton />
         )}
       </div>
-
-      {/* <div className="bg-white p-6 rounded-lg shadow-lg mt-10 text-center">
-        <Link
-          href="dashboard-user/riwayat"
-          className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-        >
-          Lihat Riwayat Prediksi Saya
-        </Link>
-      </div> */}
     </div>
   );
 };

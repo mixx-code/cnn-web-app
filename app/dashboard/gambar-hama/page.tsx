@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { decodeJWT } from "@/utils/decodeToken";
 import Link from "next/link";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 interface ImagesType {
   gambar_id: number;
@@ -89,44 +90,46 @@ const Images: React.FC = () => {
   useEffect(() => {
     fetchHistory();
   }, [router]);
-
   const handleDelete = async (gambarId: number): Promise<void> => {
-    // Tampilkan konfirmasi sebelum menghapus
-    const isConfirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus gambar hama ini?"
-    );
-
-    if (!isConfirmed) {
-      return; // Jika tidak dikonfirmasi, hentikan eksekusi
-    }
-
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-gambar-hama/${gambarId}`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
-          "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete gambar: ${response.statusText}`);
+    // Use SweetAlert2 for confirmation
+    const { isConfirmed } = await Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda tidak akan dapat mengembalikan gambar ini setelah dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true, // Buttons order
+    });
+  
+    if (isConfirmed) {
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}delete-gambar-hama/${gambarId}`;
+  
+      try {
+        const response = await fetch(apiUrl, {
+          method: "DELETE", // Menggunakan metode HTTP DELETE untuk menghapus data
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Menambahkan token jika diperlukan
+            "Content-Type": "application/json", // Tambahkan jika server memerlukan content type
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Failed to delete gambar: ${response.statusText}`);
+        }
+  
+        const result = await response.json();
+        console.log("gambar deleted successfully:", result);
+  
+        // Reload the page after deletion
+        Swal.fire("Dihapus!", "Gambar hama berhasil dihapus.", "success");
+        window.location.reload(); // This will reload the page
+      } catch (error) {
+        console.error("Error deleting gambar:", error);
+        Swal.fire("Gagal", "Terjadi kesalahan saat menghapus gambar.", "error");
       }
-
-      const result = await response.json();
-      console.log("gambar deleted successfully:", result);
-      window.location.reload(); // This will reload the page
-
-      // Tindakan tambahan setelah penghapusan berhasil
-      alert("gambar berhasil dihapus.");
-    } catch (error) {
-      console.error("Error deleting gambar:", error);
-      alert("Terjadi kesalahan saat menghapus gambar.");
     }
   };
-
   const loadMore = () => {
     if (nextCursor) {
       fetchHistory(nextCursor);

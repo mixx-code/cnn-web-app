@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 
 interface ModalProps {
   isOpen: boolean;
@@ -18,38 +20,46 @@ const ModalTambahAdmin: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    // Ambil token dari localStorage atau sumber lainnya
-    const token = localStorage.getItem("token"); // Misalnya token disimpan di localStorage
+    const token = localStorage.getItem("token"); // Ambil token dari localStorage
 
     try {
       const response = await fetch("/api/admin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Menambahkan token ke header Authorization
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name,
-          username,
-          password,
-        }),
+        body: JSON.stringify({ name, username, password }),
       });
 
       if (response.ok) {
-        console.log("admin added successfully");
-        // Optionally close the modal after successful submission
-        alert("berhasil tambah admin");
-        window.location.reload(); // This will reload the page
-        toggleModal();
+        Swal.fire({
+          title: "Berhasil!",
+          text: "Admin berhasil ditambahkan.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => {
+          toggleModal(); // Tutup modal setelah notifikasi selesai
+          window.location.reload(); // Reload halaman
+        });
       } else {
-        console.error("Failed to save admin");
+        Swal.fire({
+          title: "Gagal!",
+          text: "Terjadi kesalahan saat menambahkan admin.",
+          icon: "error",
+        });
       }
     } catch (error) {
-      console.error("Error saving admin:", error);
+      Swal.fire({
+        title: "Gagal!",
+        text: "Terjadi kesalahan jaringan atau server.",
+        icon: "error",
+      });
     }
   };
 
-  // Limit the password length to 8 characters
+  // Membatasi panjang password hingga 8 karakter
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;
     if (newPassword.length <= 8) {
@@ -85,12 +95,12 @@ const ModalTambahAdmin: React.FC<ModalProps> = ({
             <input
               type="password"
               value={password}
-              onChange={handlePasswordChange} // Use the new handler
+              onChange={handlePasswordChange}
               className="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {password.length > 8 && (
               <p className="text-red-500 text-sm">
-                Password cannot exceed 8 characters.
+                Password tidak boleh lebih dari 8 karakter.
               </p>
             )}
           </div>
@@ -101,14 +111,14 @@ const ModalTambahAdmin: React.FC<ModalProps> = ({
             onClick={toggleModal}
             className="bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-gray-500"
           >
-            Cancel
+            Batal
           </button>
           <button
             type="button"
-            onClick={handleSave} // Trigger form submission here
+            onClick={handleSave}
             className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
           >
-            Save
+            Simpan
           </button>
         </div>
       </div>

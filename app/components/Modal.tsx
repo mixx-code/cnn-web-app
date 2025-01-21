@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 
 interface ModalProps {
   isOpen: boolean;
@@ -33,15 +34,35 @@ const Modal: React.FC<ModalProps> = ({ isOpen, toggleModal, title }) => {
 
       if (response.ok) {
         console.log("petugas added successfully");
-        // Optionally close the modal after successful submission
-        alert("berhasil tambah petugas");
-        window.location.reload(); // This will reload the page
-        toggleModal();
+        // Show success alert
+        Swal.fire({
+          title: "Success!",
+          text: "Petugas added successfully.",
+          icon: "success",
+          confirmButtonText: "OK",
+        }).then(() => {
+          window.location.reload(); // This will reload the page
+          toggleModal();
+        });
       } else {
         console.error("Failed to save petugas");
+        // Show error alert
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to add petugas. Please try again.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       }
     } catch (error) {
       console.error("Error saving petugas:", error);
+      // Show error alert
+      Swal.fire({
+        title: "Error!",
+        text: "An error occurred while saving petugas. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 

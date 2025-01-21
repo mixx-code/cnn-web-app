@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 interface Petugas {
   petugas_id: number;
@@ -24,41 +25,60 @@ const ModalEditPetugas: React.FC<ModalEditPetugasProps> = ({
 
   const handleEdit = async () => {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}edit-petugas/${id}`;
-
-    const updatedUser = {
-      name,
-      username,
-      password,
-    };
-
-    // Misalkan token diambil dari localStorage atau state
-    const token = localStorage.getItem("token"); // Pastikan mengganti dengan cara pengambilan token sesuai dengan aplikasi Anda
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "PUT", // Menggunakan metode HTTP PUT untuk mengedit data
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Menambahkan token ke header
-        },
-        body: JSON.stringify(updatedUser),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update petugas: ${response.statusText}`);
+    const token = localStorage.getItem("token");
+  
+    const updatePetugas = { name, username, password };
+  
+    // Trigger confirmation dialog using SweetAlert2
+    Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda akan mengedit data petugas ini!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Ya, edit!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Making the API call to update petugas
+          const response = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(updatePetugas),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Gagal memperbarui petugas: ${response.statusText}`);
+          }
+  
+          // Success message using SweetAlert2
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: "Petugas berhasil diperbarui.",
+            timer: 2000,
+            showConfirmButton: false,
+          }).then(() => {
+            window.location.reload(); // Reload page after update
+          });
+  
+          onClose(); // Close the modal after successful update
+        } catch (error) {
+          // Error message in case of failure
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Terjadi kesalahan saat memperbarui petugas.",
+          });
+        }
       }
-
-      const result = await response.json();
-      console.log("petugas updated successfully:", result);
-      // Optionally close the modal after successful submission
-      alert("berhasil tambah petugas");
-      window.location.reload(); // This will reload the page
-
-      onClose(); // Menutup modal setelah data berhasil disimpan
-    } catch (error) {
-      console.error("Error updating petugas:", error);
-    }
+    });
   };
+  
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
